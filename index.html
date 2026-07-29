@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comercializadora Tío Julián - Sistema Adm.</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root { --adn-bg: #0b1120; --adn-sidebar: #151e32; --adn-accent: #2563eb; --adn-text: #f1f5f9; }
+        body { margin: 0; font-family: sans-serif; background: var(--adn-bg); color: var(--adn-text); display: flex; height: 100vh; }
+        
+        /* Sidebar Estilo ADN Software */
+        aside { width: 250px; background: var(--adn-sidebar); padding: 20px; border-right: 1px solid #23314d; }
+        .nav-btn { display: block; padding: 12px; color: #cbd5e1; text-decoration: none; border-radius: 6px; margin-bottom: 5px; font-weight: 500; }
+        .nav-btn:hover, .nav-btn.active { background: var(--adn-accent); color: white; }
+
+        /* Contenido */
+        main { flex: 1; padding: 30px; overflow-y: auto; }
+        .card { background: #1e293b; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+
+        /* FACTURA (Estilo Tradicional para impresión) */
+        .print-only { display: none; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { 
+                display: block; 
+                background: white; 
+                color: black; 
+                padding: 40px; 
+                font-family: 'Courier New', Courier, monospace; 
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<aside class="no-print">
+    <h2 style="color:white; margin-bottom:20px;">Tío Julián</h2>
+    <a href="#" class="nav-btn active" onclick="showView('inventory')">Inventario</a>
+    <a href="#" class="nav-btn" onclick="showView('pos')">Nueva Factura</a>
+</aside>
+
+<main>
+    <!-- VISTA INVENTARIO -->
+    <div id="view-inventory" class="card no-print">
+        <h3>Inventario de Productos</h3>
+        <input type="text" id="pName" placeholder="Nombre del producto">
+        <input type="number" id="pPrice" placeholder="Precio">
+        <button onclick="addProduct()">Agregar al sistema</button>
+        <table id="invTable" style="width:100%; margin-top:20px; text-align:left;">
+            <thead><tr><th>Producto</th><th>Precio</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- VISTA POS (FACTURACIÓN) -->
+    <div id="view-pos" class="card no-print" style="display:none;">
+        <h3>Generar Factura</h3>
+        <select id="prodSelect" style="padding:10px;"></select>
+        <button onclick="addToCart()">Añadir al Carrito</button>
+        <ul id="cartList" style="margin: 20px 0;"></ul>
+        <button onclick="generateInvoice()" style="background:green; color:white; padding:10px 20px; border:none; cursor:pointer;">Emitir Factura</button>
+    </div>
+
+    <!-- FORMATO FACTURA (Visible solo al imprimir) -->
+    <div id="invoice-render" class="print-only">
+        <div style="text-align:center;">
+            <h2 style="text-transform: uppercase;">Comercializadora Tío Julián</h2>
+            <div style="font-weight: 600;">De la mano de sus clientes</div>
+            <div style="font-size: 0.8rem; margin-top: 5px;">RIF: 164227940</div>
+            <div style="font-size: 0.8rem;">DIR: Pirineos 1</div>
+            <p style="margin-top:15px;">Nota de Entrega: <span id="f-id"></span></p>
+        </div>
+        
+        <table style="width:100%; border-top:1px solid #000; border-bottom:1px solid #000; margin-top:20px;">
+            <thead><tr><th style="text-align:left;">DESCRIPCIÓN</th><th style="text-align:right;">PRECIO</th></tr></thead>
+            <tbody id="f-body"></tbody>
+        </table>
+        
+        <div style="text-align:right; margin-top:10px;">
+            <p>SUBTOTAL: <span id="f-sub"></span></p>
+            <p>IVA (16%): <span id="f-iva"></span></p>
+            <p><strong>TOTAL: <span id="f-total"></span></strong></p>
+        </div>
+        
+        <div style="margin-top:20px; display:flex; align-items:center; gap:10px;">
+            <div id="qrcode"></div>
+            <div style="font-size:0.6rem; max-width:150px;">Factura digital verificable mediante código QR.</div>
+        </div>
+    </div>
+</main>
+
+<script>
+    let inventory = JSON.parse(localStorage.getItem('inv')) || [];
+    let cart = [];
+
+    function showView(view) {
+        document.getElementById('view-inventory').style.display = view === 'inventory' ? 'block' : 'none';
+        document.getElementById('view-pos').style.display = view === 'pos' ? 'block' : 'none';
+        if(view === 'pos') refreshSelect();
+    }
+
+    function addProduct() {
+        const name = document.getElementById('pName').value;
+        const price = document.getElementById('pPrice').value;
+        if(!name || !price) return alert("Completa los campos");
+        inventory.push({name, price});
+        localStorage.setItem('inv', JSON.stringify(inventory));
+        renderInventory();
+    }
+
+    function renderInventory() {
+        const t = document.getElementById('invTable').querySelector('tbody');
+        t.innerHTML = inventory.map(p => `<tr><td>${p.name}</td><td>${p.price}</td></tr>`).join('');
+    }
+
+    function refreshSelect() {
+        const s = document.getElementById('prodSelect');
+        s.innerHTML = inventory.map((p, i) => `<option value="${i}">${p.name} - ${p.price}</option>`);
+    }
+
+    function addToCart() {
+        const idx = document.getElementById('prodSelect').value;
+        cart.push(inventory[idx]);
+        const li = document.createElement('li');
+        li.innerText = inventory[idx].name;
+        document.getElementById('cartList').appendChild(li);
+    }
+
+    function generateInvoice() {
+        if(cart.length === 0) return alert("Carrito vacío");
+        const total = cart.reduce((acc, p) => acc + parseFloat(p.price), 0);
+        const iva = total * 0.16;
+        
+        document.getElementById('f-id').innerText = "0000" + Math.floor(Math.random()*900);
+        document.getElementById('f-body').innerHTML = cart.map(p => `<tr><td>${p.name}</td><td style="text-align:right;">${p.price}</td></tr>`).join('');
+        document.getElementById('f-sub').innerText = (total - iva).toFixed(2);
+        document.getElementById('f-iva').innerText = iva.toFixed(2);
+        document.getElementById('f-total').innerText = total.toFixed(2);
+
+        document.getElementById("qrcode").innerHTML = "";
+        new QRCode(document.getElementById("qrcode"), {
+            text: "https://tihojulian.com/verificar?factura=" + Date.now(),
+            width: 60, height: 60
+        });
+
+        window.print();
+        cart = []; // Limpiar carrito
+        document.getElementById('cartList').innerHTML = "";
+    }
+
+    renderInventory();
+</script>
+</body>
+</html>
