@@ -53,7 +53,6 @@
 
     main { flex: 1; padding: 30px; overflow-y: auto; }
     .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
     .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
 
@@ -95,7 +94,7 @@
 </head>
 <body>
 
-  <!-- LOGIN RESTRINGIDO -->
+  <!-- LOGIN -->
   <div id="login-screen">
     <div class="login-card">
       <h2 style="margin-bottom: 5px; color: var(--accent);">TÍO JULIÁN</h2>
@@ -144,16 +143,16 @@
         
         <div class="grid-3">
           <div class="card">
-            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">TOTAL PRODUCTOS</span>
+            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">TOTAL PRODUCTOS DIVERSOS</span>
             <h2 id="dash-count" style="font-size:2rem; margin-top:5px; color:var(--accent);">0</h2>
           </div>
           <div class="card">
-            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">VALOR INVENTARIO (COP)</span>
-            <h2 id="dash-val" style="font-size:2rem; margin-top:5px; color:var(--success);">$0.00</h2>
+            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">UNIDADES TOTALES EN STOCK</span>
+            <h2 id="dash-stock" style="font-size:2rem; margin-top:5px; color:var(--success);">0</h2>
           </div>
           <div class="card">
-            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">FACTURAS EMITIDAS</span>
-            <h2 id="dash-invoices" style="font-size:2rem; margin-top:5px; color:var(--accent);">0</h2>
+            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">VALOR INVENTARIO (COP)</span>
+            <h2 id="dash-val" style="font-size:2rem; margin-top:5px; color:var(--accent);">$0.00</h2>
           </div>
         </div>
 
@@ -173,14 +172,14 @@
         </div>
       </div>
 
-      <!-- INVENTARIO AVANZADO Y MULTIMONEDA -->
+      <!-- INVENTARIO AVANZADO Y EDICIÓN -->
       <div id="sec-inv" style="display:none;">
-        <h1 style="margin-bottom:20px;">Gestión de Inventario Multimoneda</h1>
+        <h1 style="margin-bottom:20px;">Gestión de Inventario y Control de Stock</h1>
         
         <div class="card">
           <h3 style="margin-bottom:15px; font-size:0.95rem;">Registrar Nuevo Producto</h3>
           
-          <div style="display:grid; grid-template-columns: 1fr 2fr 1fr 1fr auto; gap:10px; align-items:end; margin-bottom:12px;">
+          <div style="display:grid; grid-template-columns: 1fr 2fr 1fr 1fr 1fr auto; gap:10px; align-items:end; margin-bottom:12px;">
             <div>
               <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CÓDIGO</label>
               <input type="text" id="pCode" class="input-sys" placeholder="Ej: 000101">
@@ -196,6 +195,10 @@
             <div>
               <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 2 MAYOR (COP)</label>
               <input type="number" id="pPrice2" class="input-sys" placeholder="0.00">
+            </div>
+            <div>
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">STOCK INICIAL</label>
+              <input type="number" id="pStock" class="input-sys" placeholder="Ej: 50" value="50">
             </div>
             <div style="display:flex; align-items:center; gap:8px; padding-bottom:8px;">
               <input type="checkbox" id="pHasIva" style="width:18px; height:18px; cursor:pointer;" checked>
@@ -217,9 +220,10 @@
                 <th>Código</th>
                 <th>Descripción</th>
                 <th>Impuesto</th>
+                <th>Stock (Quedan / Inicial)</th>
                 <th>Precio 1 - Detal (COP / USD / BS)</th>
                 <th>Precio 2 - Mayor (COP / USD / BS)</th>
-                <th>Acción</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="invTable"></tbody>
@@ -246,10 +250,10 @@
             </div>
             <div>
               <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FECHA DE EMISIÓN</label>
-              <input type="date" id="fInputEmision" class="input-sys" onchange="updateFactura()">
+              <input type="date" id="fInputEmision" class="input-sys" onchange="autoCalculateExpiry()">
             </div>
             <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FECHA DE VENCIMIENTO</label>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FECHA VENCIMIENTO (+15 DÍAS AUTOMÁTICO)</label>
               <input type="date" id="fInputVenc" class="input-sys" onchange="updateFactura()">
             </div>
           </div>
@@ -274,7 +278,7 @@
           </div>
         </div>
 
-        <!-- VISTA PREVIA IMPRESIÓN IMPRESA DE FACTURA -->
+        <!-- VISTA PREVIA FACTURA -->
         <div class="invoice-preview">
           <div class="doc-header">
             <div class="doc-title">Comercializadora Tío Julián</div>
@@ -341,19 +345,35 @@
     lucide.createIcons();
 
     const defaultInv = [
-      { code: '000062', desc: 'CHUPETA BIG BON XXX WHITE URBAN', p1: 17000, p2: 15516, hasIva: true },
-      { code: '000220', desc: 'WAFER CHOCOLATE 24UNID', p1: 6500, p2: 6012, hasIva: true },
-      { code: '000094', desc: 'MENTA HELADA SUPER 100*3.8gr', p1: 7500, p2: 6948, hasIva: false },
-      { code: '000035', desc: 'BIANCHI SNACK CHOCOLORES MANI 50gr', p1: 2200, p2: 1980, hasIva: true },
-      { code: '000185', desc: 'TRULULU AROS 70gr', p1: 2200, p2: 1980, hasIva: false }
+      { code: '000062', desc: 'CHUPETA BIG BON XXX WHITE URBAN', p1: 17000, p2: 15516, hasIva: true, initialStock: 100, currentStock: 85 },
+      { code: '000220', desc: 'WAFER CHOCOLATE 24UNID', p1: 6500, p2: 6012, hasIva: true, initialStock: 50, currentStock: 42 },
+      { code: '000094', desc: 'MENTA HELADA SUPER 100*3.8gr', p1: 7500, p2: 6948, hasIva: false, initialStock: 200, currentStock: 150 },
+      { code: '000035', desc: 'BIANCHI SNACK CHOCOLORES MANI 50gr', p1: 2200, p2: 1980, hasIva: true, initialStock: 120, currentStock: 90 },
+      { code: '000185', desc: 'TRULULU AROS 70gr', p1: 2200, p2: 1980, hasIva: false, initialStock: 80, currentStock: 65 }
     ];
 
-    let inventory = JSON.parse(localStorage.getItem('tj_inv_v2')) || defaultInv;
+    let inventory = JSON.parse(localStorage.getItem('tj_inv_v3')) || defaultInv;
     let cart = [];
 
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('fInputEmision').value = today;
-    document.getElementById('fInputVenc').value = today;
+    // INICIALIZAR FECHA DE EMISIÓN Y AUTOMÁTICAMENTE +15 DÍAS DE VENCIMIENTO
+    function initDates() {
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      document.getElementById('fInputEmision').value = todayStr;
+      
+      autoCalculateExpiry();
+    }
+
+    function autoCalculateExpiry() {
+      const emisionVal = document.getElementById('fInputEmision').value;
+      if (!emisionVal) return;
+
+      const emisionDate = new Date(emisionVal + 'T00:00:00');
+      emisionDate.setDate(emisionDate.getDate() + 15);
+      
+      document.getElementById('fInputVenc').value = emisionDate.toISOString().split('T')[0];
+      updateFactura();
+    }
 
     function login(e) {
       e.preventDefault();
@@ -363,6 +383,7 @@
       if(u === 'admin' && p === '15597680') {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-container').style.display = 'flex';
+        initDates();
         renderAll();
       } else {
         alert("Credenciales incorrectas");
@@ -384,25 +405,54 @@
       const desc = document.getElementById('pDesc').value;
       const p1 = parseFloat(document.getElementById('pPrice1').value);
       const p2 = parseFloat(document.getElementById('pPrice2').value) || p1;
+      const stock = parseInt(document.getElementById('pStock').value) || 0;
       const hasIva = document.getElementById('pHasIva').checked;
 
       if(!code || !desc || isNaN(p1)) return alert("Por favor complete código, descripción y al menos el Precio 1.");
 
-      inventory.push({ code, desc, p1, p2, hasIva });
-      localStorage.setItem('tj_inv_v2', JSON.stringify(inventory));
+      inventory.push({ code, desc, p1, p2, hasIva, initialStock: stock, currentStock: stock });
+      localStorage.setItem('tj_inv_v3', JSON.stringify(inventory));
       
       document.getElementById('pCode').value = '';
       document.getElementById('pDesc').value = '';
       document.getElementById('pPrice1').value = '';
       document.getElementById('pPrice2').value = '';
+      document.getElementById('pStock').value = '50';
 
+      renderAll();
+    }
+
+    function editProduct(idx) {
+      const item = inventory[idx];
+      
+      const newDesc = prompt("Descripción del producto:", item.desc);
+      if (newDesc === null) return;
+      
+      const newP1 = prompt("Precio 1 - Detal (COP):", item.p1);
+      if (newP1 === null) return;
+
+      const newP2 = prompt("Precio 2 - Mayor (COP):", item.p2);
+      if (newP2 === null) return;
+
+      const newStock = prompt("Cantidad restante (cuántos quedan):", item.currentStock);
+      if (newStock === null) return;
+
+      const newHasIva = confirm("¿Este producto aplica IVA del 16%? (Aceptar = Sí, Cancelar = No)");
+
+      item.desc = newDesc;
+      item.p1 = parseFloat(newP1) || item.p1;
+      item.p2 = parseFloat(newP2) || item.p2;
+      item.currentStock = parseInt(newStock) || item.currentStock;
+      item.hasIva = newHasIva;
+
+      localStorage.setItem('tj_inv_v3', JSON.stringify(inventory));
       renderAll();
     }
 
     function deleteProduct(idx) {
       if(confirm("¿Eliminar este producto del inventario?")) {
         inventory.splice(idx, 1);
-        localStorage.setItem('tj_inv_v2', JSON.stringify(inventory));
+        localStorage.setItem('tj_inv_v3', JSON.stringify(inventory));
         renderAll();
       }
     }
@@ -415,10 +465,19 @@
       if(isNaN(qty) || qty <= 0) return alert("Cantidad no válida");
 
       const item = inventory[idx];
+
+      if (qty > item.currentStock) {
+        return alert(`Stock insuficiente. Solo quedan ${item.currentStock} unidades de este producto.`);
+      }
+
       const selectedPrice = pType === '1' ? item.p1 : item.p2;
 
+      // Descontar automáticamente del stock disponible
+      item.currentStock -= qty;
+      localStorage.setItem('tj_inv_v3', JSON.stringify(inventory));
+
       cart.push({ code: item.code, desc: item.desc, qty, price: selectedPrice, hasIva: item.hasIva });
-      renderCart();
+      renderAll();
     }
 
     function updateFactura() {
@@ -457,6 +516,12 @@
                 </span>
               </td>
               <td>
+                <span style="font-weight:bold; color: ${item.currentStock > 5 ? 'var(--accent)' : 'var(--danger)'};">
+                  ${item.currentStock} disponibles
+                </span>
+                <span style="font-size:0.75rem; color:var(--text-muted); display:block;">Inicial: ${item.initialStock || item.currentStock}</span>
+              </td>
+              <td>
                 <div><strong>$${item.p1.toLocaleString()} COP</strong></div>
                 <div style="font-size:0.75rem; color:var(--text-muted);">$${p1Usd} USD / ${p1Bs} Bs.</div>
               </td>
@@ -464,7 +529,10 @@
                 <div><strong>$${item.p2.toLocaleString()} COP</strong></div>
                 <div style="font-size:0.75rem; color:var(--text-muted);">$${p2Usd} USD / ${p2Bs} Bs.</div>
               </td>
-              <td><button onclick="deleteProduct(${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:700;">Eliminar</button></td>
+              <td>
+                <button onclick="editProduct(${idx})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:700; margin-right:8px;">Editar</button>
+                <button onclick="deleteProduct(${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:700;">Eliminar</button>
+              </td>
             </tr>
           `;
         }
@@ -514,7 +582,7 @@
       document.getElementById('lblTotalUsd').innerText = (grandTotal / rateUsd).toLocaleString('en-US', {minimumFractionDigits: 2});
       document.getElementById('lblTotalBs').innerText = (grandTotal / rateBs).toLocaleString('en-US', {minimumFractionDigits: 2});
 
-      // GENERAR CÓDIGO QR
+      // QR
       document.getElementById("qrcode").innerHTML = "";
       new QRCode(document.getElementById("qrcode"), {
         text: `https://comercializadoratiojulian.com/verificar?num=${document.getElementById('fInputNum').value}&monto=${grandTotal}`,
@@ -526,14 +594,18 @@
 
     function renderAll() {
       document.getElementById('dash-count').innerText = inventory.length;
-      const totalInvVal = inventory.reduce((acc, i) => acc + i.p1, 0);
+      
+      const totalStock = inventory.reduce((acc, i) => acc + (i.currentStock || 0), 0);
+      document.getElementById('dash-stock').innerText = totalStock;
+
+      const totalInvVal = inventory.reduce((acc, i) => acc + (i.p1 * (i.currentStock || 0)), 0);
       document.getElementById('dash-val').innerText = '$' + totalInvVal.toLocaleString('en-US', {minimumFractionDigits:2});
 
       // SELECTOR FACTURA
       const pSelect = document.getElementById('pSelect');
       pSelect.innerHTML = '';
       inventory.forEach((item, idx) => {
-        pSelect.innerHTML += `<option value="${idx}">${item.code} — ${item.desc} (${item.hasIva ? 'IVA' : 'EXENTO'})</option>`;
+        pSelect.innerHTML += `<option value="${idx}">${item.code} — ${item.desc} (Quedan: ${item.currentStock})</option>`;
       });
 
       renderInventoryTable();
