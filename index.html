@@ -220,10 +220,7 @@
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h3>Productos Registrados</h3>
-            <div style="display:flex; gap:10px;">
-              <button onclick="removeAllProducts()" style="background:var(--danger); color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">⚠️ Vaciar Catálogo Completo</button>
-              <input type="text" id="searchInv" class="input-sys" placeholder="Buscar producto..." oninput="renderInventoryTable()" style="width:200px;">
-            </div>
+            <input type="text" id="searchInv" class="input-sys" placeholder="Buscar producto..." oninput="renderInventoryTable()" style="width:220px;">
           </div>
           
           <table class="table-sys">
@@ -600,14 +597,6 @@
 
       updateAutoProdCode();
       renderAll();
-    }
-
-    function removeAllProducts() {
-      if(confirm("¿Seguro que desea eliminar TODOS los productos registrados del inventario?")) {
-        inventory = [];
-        localStorage.setItem('tj_inv_v6', JSON.stringify(inventory));
-        renderAll();
-      }
     }
 
     function deleteProduct(idx) {
