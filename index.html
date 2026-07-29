@@ -1,156 +1,455 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Comercializadora T�o Juli�n - Sistema Adm.</title>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        :root { --adn-bg: #0b1120; --adn-sidebar: #151e32; --adn-accent: #2563eb; --adn-text: #f1f5f9; }
-        body { margin: 0; font-family: sans-serif; background: var(--adn-bg); color: var(--adn-text); display: flex; height: 100vh; }
-        
-        /* Sidebar Estilo ADN Software */
-        aside { width: 250px; background: var(--adn-sidebar); padding: 20px; border-right: 1px solid #23314d; }
-        .nav-btn { display: block; padding: 12px; color: #cbd5e1; text-decoration: none; border-radius: 6px; margin-bottom: 5px; font-weight: 500; }
-        .nav-btn:hover, .nav-btn.active { background: var(--adn-accent); color: white; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comercializadora Tío Julián — Sistema Administrativo ADN</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    /* ========================================================= */
+    /* ESTILO PREMIUM ADN SOFTWARE (ELEGANTE, MINIMALISTA, AZUL) */
+    /* ========================================================= */
+    :root {
+      --bg-main: #0b1120;
+      --bg-card: #151e32;
+      --bg-input: #0f172a;
+      --border-color: #1e293b;
+      --border-focus: #3b82f6;
+      --accent-blue: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-light: #38bdf8;
+      --text-white: #f8fafc;
+      --text-muted: #94a3b8;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
 
-        /* Contenido */
-        main { flex: 1; padding: 30px; overflow-y: auto; }
-        .card { background: #1e293b; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-white); font-size: 0.9rem; min-height: 100vh; display: flex; overflow: hidden; }
 
-        /* FACTURA (Estilo Tradicional para impresi�n) */
-        .print-only { display: none; }
-        @media print {
-            .no-print { display: none !important; }
-            .print-only { 
-                display: block; 
-                background: white; 
-                color: black; 
-                padding: 40px; 
-                font-family: 'Courier New', Courier, monospace; 
-                width: 100%;
-            }
-        }
-    </style>
+    /* PANTALLA DE LOGIN */
+    #login-screen {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: radial-gradient(circle at center, #151e32 0%, #0b1120 100%);
+      display: flex; justify-content: center; align-items: center; z-index: 9999;
+    }
+    .login-card {
+      background: rgba(21, 30, 50, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 40px; width: 100%; max-width: 380px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    .login-brand { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 5px; color: #fff; }
+    .login-sub { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 30px; }
+
+    .form-group { text-align: left; margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; letter-spacing: 0.5px; }
+    
+    .input-adn {
+      width: 100%; background: var(--bg-input); border: 1px solid var(--border-color);
+      color: #fff; padding: 12px 14px; border-radius: 8px; font-size: 0.9rem; outline: none; transition: all 0.2s;
+    }
+    .input-adn:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+
+    .btn-adn-primary {
+      width: 100%; background: var(--accent-blue); color: #fff; border: none; padding: 12px;
+      border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;
+    }
+    .btn-adn-primary:hover { background: var(--accent-hover); }
+
+    /* NAVEGACIÓN Y PANEL PRINCIPAL DE ADN SOFTWARE */
+    #app-container { display: none; width: 100%; height: 100vh; flex-direction: row; }
+    
+    aside { width: 260px; background: var(--bg-card); border-right: 1px solid var(--border-color); padding: 25px 20px; display: flex; flex-direction: column; gap: 30px; }
+    .app-logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.05rem; }
+    .app-logo i { color: var(--accent-light); }
+
+    nav ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    nav a {
+      color: var(--text-muted); text-decoration: none; padding: 12px 14px; border-radius: 8px;
+      display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: 0.88rem; transition: all 0.2s;
+    }
+    nav a.active, nav a:hover { background: rgba(37, 99, 235, 0.15); color: var(--accent-light); }
+
+    main { flex: 1; padding: 35px; overflow-y: auto; }
+    .header-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .header-title h1 { font-size: 1.4rem; font-weight: 700; }
+
+    /* PÁNELES / CARDS */
+    .panel-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; margin-bottom: 25px; }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+    /* TABLA ESTILO ADN SOFTWARE */
+    .adn-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .adn-table th { background: var(--bg-input); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
+    .adn-table td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
+
+    /* FORMATO DE LA FACTURA FÍSICA PARA IMPRESIÓN / PDF (CALCADA DE LA FOTO) */
+    .invoice-paper-preview {
+      background: #ffffff; color: #000000; padding: 35px; max-width: 720px; margin: 0 auto;
+      border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-family: 'Courier New', Courier, monospace;
+    }
+
+    .doc-header-block { text-align: center; margin-bottom: 15px; }
+    .doc-title { font-weight: 900; font-size: 1.3rem; text-transform: uppercase; font-family: sans-serif; }
+    .doc-slogan { font-weight: 600; font-size: 0.8rem; font-family: sans-serif; font-style: italic; }
+    .doc-fiscal { font-size: 0.78rem; font-family: sans-serif; margin-top: 3px; }
+
+    .doc-client-grid { font-size: 0.78rem; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 8px 0; margin: 15px 0; line-height: 1.4; font-weight: 700; text-transform: uppercase; }
+
+    .doc-table-print { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 15px; }
+    .doc-table-print th { border-bottom: 1px solid #000; text-align: left; padding: 4px 0; }
+    .doc-table-print td { padding: 4px 0; }
+
+    .doc-totals { text-align: right; font-size: 0.8rem; font-weight: 700; line-height: 1.5; border-top: 1px solid #000; padding-top: 8px; }
+
+    /* IMPRESIÓN MÁGICA */
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      #login-screen, aside, .no-print { display: none !important; }
+      #app-container { display: block !important; }
+      main { padding: 0 !important; }
+      .invoice-paper-preview { box-shadow: none !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+      @page { size: auto; margin: 6mm; }
+    }
+  </style>
 </head>
 <body>
 
-<aside class="no-print">
-    <h2 style="color:white; margin-bottom:20px;">T�o Juli�n</h2>
-    <a href="#" class="nav-btn active" onclick="showView('inventory')">Inventario</a>
-    <a href="#" class="nav-btn" onclick="showView('pos')">Nueva Factura</a>
-</aside>
+  <!-- PANTALLA DE INICIO DE SESIÓN RESTRENGIDO -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-brand">TIHO JULIÁN</div>
+      <div class="login-sub">Sistema Administrativo ADN Software</div>
+      
+      <!-- DESACTIVADO AUTOCOMPLETE TOTAL -->
+      <form onsubmit="autenticarUsuario(event)" autocomplete="off">
+        <!-- Campos falsos para engañar el autocompletado de navegadores -->
+        <input type="text" style="display:none" name="fakeusernameremembered"/>
+        <input type="password" style="display:none" name="fakepasswordremembered"/>
 
-<main>
-    <!-- VISTA INVENTARIO -->
-    <div id="view-inventory" class="card no-print">
-        <h3>Inventario de Productos</h3>
-        <input type="text" id="pName" placeholder="Nombre del producto">
-        <input type="number" id="pPrice" placeholder="Precio">
-        <button onclick="addProduct()">Agregar al sistema</button>
-        <table id="invTable" style="width:100%; margin-top:20px; text-align:left;">
-            <thead><tr><th>Producto</th><th>Precio</th></tr></thead>
-            <tbody></tbody>
-        </table>
+        <div class="form-group">
+          <label>Usuario</label>
+          <input type="text" id="userInput" class="input-adn" placeholder="Ingrese usuario" autocomplete="off" required>
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="passInput" class="input-adn" placeholder="••••••••" autocomplete="off" required>
+        </div>
+        <button type="submit" class="btn-adn-primary">Ingresar al Sistema</button>
+      </form>
     </div>
+  </div>
 
-    <!-- VISTA POS (FACTURACI�N) -->
-    <div id="view-pos" class="card no-print" style="display:none;">
-        <h3>Generar Factura</h3>
-        <select id="prodSelect" style="padding:10px;"></select>
-        <button onclick="addToCart()">A�adir al Carrito</button>
-        <ul id="cartList" style="margin: 20px 0;"></ul>
-        <button onclick="generateInvoice()" style="background:green; color:white; padding:10px 20px; border:none; cursor:pointer;">Emitir Factura</button>
-    </div>
+  <!-- APLICACIÓN PRINCIPAL -->
+  <div id="app-container">
+    <aside>
+      <div class="app-logo">
+        <i data-lucide="layers"></i>
+        <span>TÍO JULIÁN ADN</span>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="#" id="m-dash" class="active" onclick="switchTab('dash')"><i data-lucide="layout-dashboard"></i> Panel General</a></li>
+          <li><a href="#" id="m-inv" onclick="switchTab('inv')"><i data-lucide="box"></i> Inventario</a></li>
+          <li><a href="#" id="m-pos" onclick="switchTab('pos')"><i data-lucide="file-plus-2"></i> Crear Factura</a></li>
+        </ul>
+      </nav>
+      <div style="margin-top: auto;">
+        <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.8rem; display:flex; align-items:center; gap:8px;">
+          <i data-lucide="log-out" style="width:16px;"></i> Cerrar Sesión
+        </button>
+      </div>
+    </aside>
 
-    <!-- FORMATO FACTURA (Visible solo al imprimir) -->
-    <div id="invoice-render" class="print-only">
-        <div style="text-align:center;">
-            <h2 style="text-transform: uppercase;">Comercializadora T�o Juli�n</h2>
-            <div style="font-weight: 600;">De la mano de sus clientes</div>
-            <div style="font-size: 0.8rem; margin-top: 5px;">RIF: 164227940</div>
-            <div style="font-size: 0.8rem;">DIR: Pirineos 1</div>
-            <p style="margin-top:15px;">Nota de Entrega: <span id="f-id"></span></p>
+    <main>
+      
+      <!-- SECCIÓN: PANEL GENERAL -->
+      <div id="sec-dash">
+        <div class="header-title">
+          <h1>Resumen Operativo</h1>
+          <span style="color: var(--text-muted); font-size: 0.85rem;">Comercializadora Tío Julián C.A.</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+          <div class="panel-card">
+            <span style="color: var(--text-muted); font-size: 0.78rem;">Productos Registrados</span>
+            <h2 id="dash-prod-count" style="font-size: 1.8rem; margin-top: 10px;">0</h2>
+          </div>
+          <div class="panel-card">
+            <span style="color: var(--text-muted); font-size: 0.78rem;">Estatus de Conexión</span>
+            <h2 style="font-size: 1.8rem; margin-top: 10px; color: var(--success);">En Línea</h2>
+          </div>
+          <div class="panel-card">
+            <span style="color: var(--text-muted); font-size: 0.78rem;">Versión del Sistema</span>
+            <h2 style="font-size: 1.8rem; margin-top: 10px; color: var(--accent-light);">ADN v2.4</h2>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: INVENTARIO -->
+      <div id="sec-inv" style="display: none;">
+        <div class="header-title">
+          <h1>Gestión de Inventario</h1>
         </div>
         
-        <table style="width:100%; border-top:1px solid #000; border-bottom:1px solid #000; margin-top:20px;">
-            <thead><tr><th style="text-align:left;">DESCRIPCI�N</th><th style="text-align:right;">PRECIO</th></tr></thead>
-            <tbody id="f-body"></tbody>
-        </table>
-        
-        <div style="text-align:right; margin-top:10px;">
-            <p>SUBTOTAL: <span id="f-sub"></span></p>
-            <p>IVA (16%): <span id="f-iva"></span></p>
-            <p><strong>TOTAL: <span id="f-total"></span></strong></p>
+        <div class="panel-card">
+          <h3 style="font-size: 0.95rem; margin-bottom: 15px;">Registrar Nuevo Artículo</h3>
+          <div style="display: grid; grid-template-columns: 1fr 2fr 1fr 1fr; gap: 15px;">
+            <input type="text" id="addCode" class="input-adn" placeholder="Código (ej: 000062)">
+            <input type="text" id="addDesc" class="input-adn" placeholder="Descripción del Producto">
+            <input type="number" id="addPrice" class="input-adn" placeholder="Precio U. ($/COP)">
+            <button onclick="guardarProducto()" class="btn-adn-primary">+ Guardar</button>
+          </div>
         </div>
-        
-        <div style="margin-top:20px; display:flex; align-items:center; gap:10px;">
-            <div id="qrcode"></div>
-            <div style="font-size:0.6rem; max-width:150px;">Factura digital verificable mediante c�digo QR.</div>
+
+        <div class="panel-card">
+          <table class="adn-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Precio Unitario</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="invTableBody"></tbody>
+          </table>
         </div>
-    </div>
-</main>
+      </div>
 
-<script>
-    let inventory = JSON.parse(localStorage.getItem('inv')) || [];
-    let cart = [];
+      <!-- SECCIÓN: CREAR FACTURA Y EMISIÓN -->
+      <div id="sec-pos" style="display: none;">
+        <div class="header-title no-print">
+          <h1>Punto de Facturación</h1>
+          <button class="btn-adn-primary" onclick="procesarEImprimir()" style="width: auto; padding: 10px 20px;">
+            <i data-lucide="printer" style="width:16px; display:inline-block; vertical-align:middle;"></i> Emitir e Imprimir Factura
+          </button>
+        </div>
 
-    function showView(view) {
-        document.getElementById('view-inventory').style.display = view === 'inventory' ? 'block' : 'none';
-        document.getElementById('view-pos').style.display = view === 'pos' ? 'block' : 'none';
-        if(view === 'pos') refreshSelect();
+        <!-- FORMULARIO DE CLIENTE -->
+        <div class="panel-card no-print">
+          <h3 style="font-size: 0.95rem; margin-bottom: 15px;">Datos Fiscales del Cliente</h3>
+          <div style="display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <input type="text" id="cliName" class="input-adn" value="NEREIDA YUSMARY MORENO ANGARITA">
+            <input type="text" id="cliDir" class="input-adn" value="PORTICO VIA PRINCIPAL">
+            <input type="text" id="cliRif" class="input-adn" value="V-19000000">
+            <input type="text" id="cliPhone" class="input-adn" value="0426-3792057">
+          </div>
+
+          <h3 style="font-size: 0.95rem; margin: 20px 0 10px 0;">Añadir Productos a la Factura</h3>
+          <div style="display: flex; gap: 15px;">
+            <select id="prodSelector" class="input-adn" style="flex: 1;"></select>
+            <input type="number" id="prodQty" class="input-adn" value="1" style="width: 100px;">
+            <button onclick="agregarAlCarrito()" class="btn-adn-primary" style="width: auto;">Añadir Artículo</button>
+          </div>
+        </div>
+
+        <!-- VISTA PREVIA / DOCUMENTO DE IMPRESIÓN (IGUAL A LA FOTO) -->
+        <div class="invoice-paper-preview">
+          
+          <div class="doc-header-block">
+            <div class="doc-title">Comercializadora Tío Julián</div>
+            <div class="doc-slogan">"De la mano de sus clientes"</div>
+            <div class="doc-fiscal">RIF: 164227940 &nbsp;|&nbsp; DIR: Pirineos 1</div>
+            <div style="font-size: 0.78rem; font-weight: bold; margin-top: 10px;">
+              NOTA DE ENTREGA / FACTURA: <span id="fNum">0000752</span> &nbsp;&nbsp;&nbsp; FECHA: <span id="fFecha">17/07/2026</span>
+            </div>
+          </div>
+
+          <div class="doc-client-grid">
+            <div>RAZÓN SOCIAL: <span id="lblCliName">NEREIDA YUSMARY MORENO ANGARITA</span></div>
+            <div>DOMICILIO FISCAL: <span id="lblCliDir">PORTICO VIA PRINCIPAL</span></div>
+            <div>RIF/C.I.: <span id="lblCliRif">V-19000000</span> &nbsp;&nbsp;&nbsp;&nbsp; TELÉFONO: <span id="lblCliPhone">0426-3792057</span></div>
+          </div>
+
+          <table class="doc-table-print">
+            <thead>
+              <tr>
+                <th style="width: 12%;">CÓDIGO</th>
+                <th>DESCRIPCIÓN</th>
+                <th style="text-align: right; width: 10%;">CANT</th>
+                <th style="text-align: right; width: 18%;">PRECIO U.</th>
+                <th style="text-align: right; width: 18%;">TOTAL</th>
+              </tr>
+            </thead>
+            <tbody id="cartTableBody"></tbody>
+          </table>
+
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div id="qrcode"></div>
+              <div style="font-size: 0.62rem; max-width: 160px; line-height: 1.2;">
+                Documento fiscal emitido por Comercializadora Tío Julián. Validez digital consultable mediante QR.
+              </div>
+            </div>
+
+            <div class="doc-totals">
+              <div>SUBTOTAL / BASE: <span id="lblSub">0.00</span></div>
+              <div>IVA (16%): <span id="lblIva">0.00</span></div>
+              <div style="font-size: 0.95rem; font-weight: 900; border-top: 1px solid #000; padding-top: 3px; margin-top: 3px;">
+                MONTO TOTAL COP: <span id="lblTotal">0.00</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // DATOS DE PRUEBA INICIALES IGUALES A TU FOTO
+    const defaultInventory = [
+      { code: '000062', desc: 'CHUPETA BIG BON XXX WHITE URBAN', price: 15516 },
+      { code: '000220', desc: 'WAFER CHOCOLATE 24UNID', price: 6012 },
+      { code: '000094', desc: 'MENTA HELADA SUPER 100*3.8gr', price: 6948 },
+      { code: '000035', desc: 'BIANCHI SNACK CHOCOLORES MANI 50gr', price: 1980 },
+      { code: '000185', desc: 'TRULULU AROS 70gr', price: 1980 }
+    ];
+
+    let inventory = JSON.parse(localStorage.getItem('tio_inv')) || defaultInventory;
+    let cart = [
+      { code: '000062', desc: 'CHUPETA BIG BON XXX WHITE URBAN', qty: 1, price: 15516 },
+      { code: '000220', desc: 'WAFER CHOCOLATE 24UNID', qty: 1, price: 6012 },
+      { code: '000094', desc: 'MENTA HELADA SUPER 100*3.8gr', qty: 1, price: 6948 },
+      { code: '000035', desc: 'BIANCHI SNACK CHOCOLORES MANI 50gr', qty: 3, price: 1980 },
+      { code: '000185', desc: 'TRULULU AROS 70gr', qty: 2, price: 1980 }
+    ];
+
+    // INICIO DE SESIÓN CON DATOS EXACTOS SOLICITADOS
+    function autenticarUsuario(e) {
+      e.preventDefault();
+      const u = document.getElementById('userInput').value;
+      const p = document.getElementById('passInput').value;
+
+      if (u === 'admin' && p === '15597680') {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-container').style.display = 'flex';
+        renderInventario();
+        renderCarrito();
+      } else {
+        alert("Usuario o contraseña incorrectos. Intente nuevamente.");
+      }
     }
 
-    function addProduct() {
-        const name = document.getElementById('pName').value;
-        const price = document.getElementById('pPrice').value;
-        if(!name || !price) return alert("Completa los campos");
-        inventory.push({name, price});
-        localStorage.setItem('inv', JSON.stringify(inventory));
-        renderInventory();
+    function switchTab(tab) {
+      document.getElementById('sec-dash').style.display = tab === 'dash' ? 'block' : 'none';
+      document.getElementById('sec-inv').style.display = tab === 'inv' ? 'block' : 'none';
+      document.getElementById('sec-pos').style.display = tab === 'pos' ? 'block' : 'none';
+
+      document.getElementById('m-dash').className = tab === 'dash' ? 'active' : '';
+      document.getElementById('m-inv').className = tab === 'inv' ? 'active' : '';
+      document.getElementById('m-pos').className = tab === 'pos' ? 'active' : '';
     }
 
-    function renderInventory() {
-        const t = document.getElementById('invTable').querySelector('tbody');
-        t.innerHTML = inventory.map(p => `<tr><td>${p.name}</td><td>${p.price}</td></tr>`).join('');
+    function guardarProducto() {
+      const code = document.getElementById('addCode').value;
+      const desc = document.getElementById('addDesc').value;
+      const price = parseFloat(document.getElementById('addPrice').value);
+
+      if(!code || !desc || isNaN(price)) return alert("Por favor complete todos los datos del producto.");
+
+      inventory.push({ code, desc, price });
+      localStorage.setItem('tio_inv', JSON.stringify(inventory));
+      
+      document.getElementById('addCode').value = '';
+      document.getElementById('addDesc').value = '';
+      document.getElementById('addPrice').value = '';
+
+      renderInventario();
+      alert("Producto guardado correctamente.");
     }
 
-    function refreshSelect() {
-        const s = document.getElementById('prodSelect');
-        s.innerHTML = inventory.map((p, i) => `<option value="${i}">${p.name} - ${p.price}</option>`);
+    function renderInventario() {
+      document.getElementById('dash-prod-count').innerText = inventory.length;
+      const body = document.getElementById('invTableBody');
+      const select = document.getElementById('prodSelector');
+      
+      body.innerHTML = '';
+      select.innerHTML = '';
+
+      inventory.forEach((item, index) => {
+        body.innerHTML += `
+          <tr>
+            <td><strong>${item.code}</strong></td>
+            <td>${item.desc}</td>
+            <td>$${item.price.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td><button onclick="eliminarProducto(${index})" style="background:none; border:none; color:var(--danger); cursor:pointer;">Eliminar</button></td>
+          </tr>
+        `;
+        select.innerHTML += `<option value="${index}">${item.code} — ${item.desc} ($${item.price})</option>`;
+      });
     }
 
-    function addToCart() {
-        const idx = document.getElementById('prodSelect').value;
-        cart.push(inventory[idx]);
-        const li = document.createElement('li');
-        li.innerText = inventory[idx].name;
-        document.getElementById('cartList').appendChild(li);
+    function eliminarProducto(index) {
+      inventory.splice(index, 1);
+      localStorage.setItem('tio_inv', JSON.stringify(inventory));
+      renderInventario();
     }
 
-    function generateInvoice() {
-        if(cart.length === 0) return alert("Carrito vac�o");
-        const total = cart.reduce((acc, p) => acc + parseFloat(p.price), 0);
-        const iva = total * 0.16;
-        
-        document.getElementById('f-id').innerText = "0000" + Math.floor(Math.random()*900);
-        document.getElementById('f-body').innerHTML = cart.map(p => `<tr><td>${p.name}</td><td style="text-align:right;">${p.price}</td></tr>`).join('');
-        document.getElementById('f-sub').innerText = (total - iva).toFixed(2);
-        document.getElementById('f-iva').innerText = iva.toFixed(2);
-        document.getElementById('f-total').innerText = total.toFixed(2);
+    function agregarAlCarrito() {
+      const idx = document.getElementById('prodSelector').value;
+      const qty = parseInt(document.getElementById('prodQty').value);
+      if (isNaN(qty) || qty <= 0) return alert("Ingrese una cantidad válida.");
 
-        document.getElementById("qrcode").innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), {
-            text: "https://tihojulian.com/verificar?factura=" + Date.now(),
-            width: 60, height: 60
-        });
-
-        window.print();
-        cart = []; // Limpiar carrito
-        document.getElementById('cartList').innerHTML = "";
+      const prod = inventory[idx];
+      cart.push({ ...prod, qty });
+      renderCarrito();
     }
 
-    renderInventory();
-</script>
+    function renderCarrito() {
+      const body = document.getElementById('cartTableBody');
+      body.innerHTML = '';
+
+      let totalGeneral = 0;
+
+      cart.forEach(item => {
+        const itemTotal = item.qty * item.price;
+        totalGeneral += itemTotal;
+
+        body.innerHTML += `
+          <tr>
+            <td>${item.code}</td>
+            <td>${item.desc}</td>
+            <td style="text-align: right;">${item.qty.toFixed(2)}</td>
+            <td style="text-align: right;">${item.price.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td style="text-align: right;">${itemTotal.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+          </tr>
+        `;
+      });
+
+      const subtotal = totalGeneral / 1.16;
+      const iva = totalGeneral - subtotal;
+
+      document.getElementById('lblSub').innerText = subtotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('lblIva').innerText = iva.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('lblTotal').innerText = totalGeneral.toLocaleString('en-US', {minimumFractionDigits: 2});
+
+      // ACTUALIZAR CÓDIGO QR CON ENLACE DE CONSULTA
+      document.getElementById("qrcode").innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), {
+        text: "https://comercializadoratiojulian.com/factura?num=0000752&monto=" + totalGeneral,
+        width: 62, height: 62, colorDark : "#000000", colorLight : "#ffffff"
+      });
+    }
+
+    function procesarEImprimir() {
+      // Sincronizar datos del cliente
+      document.getElementById('lblCliName').innerText = document.getElementById('cliName').value;
+      document.getElementById('lblCliDir').innerText = document.getElementById('cliDir').value;
+      document.getElementById('lblCliRif').innerText = document.getElementById('cliRif').value;
+      document.getElementById('lblCliPhone').innerText = document.getElementById('cliPhone').value;
+
+      window.print();
+    }
+  </script>
 </body>
 </html>
