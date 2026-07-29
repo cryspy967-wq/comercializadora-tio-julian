@@ -1,1103 +1,421 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comercializadora Tío Julián - Sistema Administrativo Seguro</title>
-  <style>
-    :root {
-      --bg-main: #f0f7ff;
-      --bg-card: #ffffff;
-      --bg-input: #f8fafc;
-      --border: #cbd5e1;
-      --accent: #0284c7;
-      --accent-hover: #0369a1;
-      --accent-light: #e0f2fe;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --danger: #ef4444;
-      --success: #10b981;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Facturación y Control de IPs</title>
+    <style>
+        /* CONFIGURACIÓN IMPRESIÓN VERTICAL */
+        @page {
+            size: A4 portrait; /* Fuerza la orientación vertical */
+            margin: 15mm;
+        }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text); font-size: 0.88rem; min-height: 100vh; display: flex; overflow: hidden; }
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
 
-    /* PÁGINA PÚBLICA DE VERIFICACIÓN QR */
-    #public-qr-screen {
-      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #f8fafc; z-index: 10000; padding: 20px; flex-direction: column; align-items: center; justify-content: center;
-    }
-    .public-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 30px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; }
+        body {
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
 
-    /* LOGIN & BANNER DE BLOQUEO */
-    #login-screen {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      display: flex; justify-content: center; align-items: center; z-index: 9999;
-    }
-    .login-card {
-      background: #ffffff; border-radius: 16px; padding: 40px; width: 100%; max-width: 400px;
-      text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-    }
-    .blocked-banner {
-      display: none; background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b;
-      padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; font-size: 0.85rem; line-height: 1.4;
-    }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
 
-    .input-sys {
-      width: 100%; background: var(--bg-input); border: 1px solid var(--border);
-      color: var(--text); padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; outline: none; margin-top: 4px;
-    }
-    .input-sys:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
-    .btn-primary { width: 100%; background: var(--accent); color: #fff; border: none; padding: 11px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    .btn-primary:hover { background: var(--accent-hover); }
+        /* NAVEGACIÓN Y PESTAÑAS */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
-    /* LAYOUT APLICACIÓN */
-    #app-container { display: none; width: 100%; height: 100vh; flex-direction: row; }
-    aside { width: 250px; background: #ffffff; border-right: 1px solid var(--border); padding: 25px 20px; display: flex; flex-direction: column; gap: 20px; }
-    .brand { font-size: 1.15rem; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 10px; }
-    
-    nav ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    nav a { color: var(--text-muted); text-decoration: none; padding: 12px 14px; border-radius: 8px; display: flex; align-items: center; gap: 10px; font-weight: 600; }
-    nav a.active, nav a:hover { background: var(--accent-light); color: var(--accent); }
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background-color: #e4e6eb;
+            color: #050505;
+            font-weight: bold;
+            font-size: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-    main { flex: 1; padding: 30px; overflow-y: auto; }
-    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .tab-btn.active {
+            background-color: #1b74e4;
+            color: white;
+        }
 
-    /* TABLAS DE PANTALLA */
-    .table-sys { width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px; }
-    .table-sys th { background: #f1f5f9; padding: 10px; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; border-bottom: 2px solid var(--border); }
-    .table-sys td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-    
-    .badge { padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
-    .badge-iva { background: #dcfce7; color: #15803d; }
-    .badge-exempt { background: #fef3c7; color: #b45309; }
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
 
-    /* FACTURA EN PAPEL VERTICAL (PORTRAIT) DE HASTA 32 ÍTEMS COMPACTA */
-    .print-sheet { display: flex; flex-direction: column; gap: 10px; }
-    .invoice-preview {
-      background: #fff; color: #000; padding: 15px 20px; max-width: 800px; margin: 0 auto;
-      font-family: Arial, sans-serif; border: 1px solid #000; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%;
-    }
-    .doc-header { text-align: center; margin-bottom: 4px; }
-    .doc-title { font-weight: 900; font-size: 1rem; text-transform: uppercase; color: #000; }
-    .doc-sub { font-size: 0.7rem; font-weight: 600; font-style: italic; }
-    .doc-fiscal { font-size: 0.65rem; margin-top: 1px; }
+        .tab-content.active {
+            display: block;
+        }
 
-    .doc-client { border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 0; margin: 4px 0; font-size: 0.7rem; font-weight: 700; line-height: 1.2; text-transform: uppercase; }
-    
-    /* TABLA COMPACTA VERTICAL HASTA 32 ÍTEMS */
-    .doc-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; margin-bottom: 6px; }
-    .doc-table th { border-bottom: 1px solid #000; text-align: left; padding: 2px 4px; background: #f1f5f9; }
-    .doc-table td { padding: 1px 4px; border-bottom: 1px solid #e2e8f0; }
+        /* FACTURA VERTICAL */
+        .factura-box {
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-    .doc-totals { text-align: right; font-size: 0.7rem; font-weight: 800; line-height: 1.2; border-top: 1px solid #000; padding-top: 2px; }
+        .header-factura {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
 
-    /* REGLA DE IMPRESIÓN EN VERTICAL (PORTRAIT) COMPACTA PARA 32 ÍTEMS */
-    @media print {
-      body { background: #fff !important; color: #000 !important; }
-      #login-screen, aside, .no-print, #public-qr-screen { display: none !important; }
-      #app-container { display: block !important; }
-      main { padding: 0 !important; }
-      .invoice-preview { border: 1px dashed #000 !important; padding: 8px 12px !important; width: 100% !important; max-width: 100% !important; box-shadow: none !important; page-break-inside: avoid; }
-      .print-sheet { display: block !important; }
-      @page { size: portrait; margin: 4mm 5mm; }
-      .doc-table td { padding: 0.5px 3px !important; font-size: 0.6rem !important; }
-      .doc-table th { padding: 1.5px 3px !important; font-size: 0.62rem !important; }
-    }
-  </style>
+        .empresa-info h2 {
+            margin: 0 0 5px 0;
+            color: #2c3e50;
+        }
+
+        .empresa-info p, .factura-detalles p {
+            margin: 2px 0;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .factura-detalles {
+            text-align: right;
+        }
+
+        .factura-detalles h1 {
+            margin: 0 0 5px 0;
+            color: #2c3e50;
+            font-size: 26px;
+        }
+
+        .cliente-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #2c3e50;
+            padding: 15px;
+            margin-bottom: 25px;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        table.tabla-factura {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+
+        table.tabla-factura th, table.tabla-factura td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+            font-size: 0.95em;
+        }
+
+        table.tabla-factura th {
+            background-color: #f1f3f5;
+            color: #2c3e50;
+        }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        .totales-wrapper {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 30px;
+        }
+
+        .totales-box {
+            width: 45%;
+        }
+
+        .totales-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .totales-box td {
+            padding: 6px 10px;
+            border: none;
+        }
+
+        .total-destacado {
+            font-size: 1.15em;
+            font-weight: bold;
+            border-top: 2px solid #2c3e50 !important;
+            background-color: #f8f9fa;
+        }
+
+        .footer-factura {
+            text-align: center;
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 40px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 15px;
+        }
+
+        /* PANEL CONTROL DE IPS */
+        .status-card {
+            background-color: #e7f5ff;
+            border: 1px solid #a5d8ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+        .ip-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .ip-controls input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-danger { background-color: #e03131; color: white; }
+        .btn-success { background-color: #2b8a3e; color: white; }
+
+        table.tabla-ips {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.tabla-ips th, table.tabla-ips td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+            text-align: left;
+        }
+
+        table.tabla-ips th {
+            background-color: #f8f9fa;
+        }
+
+        .badge-blocked {
+            background-color: #ffe3e3;
+            color: #c92a2a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        /* OCULTAR NAVEGACIÓN AL IMPRIMIR FACTURA */
+        @media print {
+            .nav-tabs, #panel-ip {
+                display: none !important;
+            }
+            body {
+                background: white;
+                padding: 0;
+            }
+            .tab-content {
+                box-shadow: none;
+                padding: 0;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- PANTALLA PÚBLICA DE VERIFICACIÓN QR -->
-  <div id="public-qr-screen">
-    <div class="public-card">
-      <h2 style="color:var(--accent); margin-bottom:5px;">Comercializadora Tío Julián</h2>
-      <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:15px;">Módulo de Verificación Digital de Documentos</p>
-      <hr style="margin-bottom:15px; border:none; border-top:1px solid var(--border);">
-      
-      <div id="qr-result-box" style="text-align:left; line-height:1.6; font-size:0.9rem;">
-        <p><strong>Estado:</strong> <span style="color:var(--success); font-weight:bold;">✔ Documento Válido</span></p>
-        <p><strong>Nº Nota de Entrega:</strong> <span id="pub-num">---</span></p>
-        <p><strong>Monto Total USD:</strong> <span id="pub-monto">---</span></p>
-        <p><strong>Fecha de Emisión:</strong> <span id="pub-fecha">---</span></p>
-      </div>
-    </div>
-  </div>
-
-  <!-- INICIO DE SESIÓN SEGURO -->
-  <div id="login-screen">
-    <div class="login-card">
-      <h2 style="margin-bottom: 5px; color: var(--accent);">TÍO JULIÁN</h2>
-      <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px;">Acceso Restringido al Sistema</p>
-
-      <div id="ipBlockedMessage" class="blocked-banner">
-        🚨 IP BLOQUEADA POR SEGURIDAD<br>
-        Se han detectado más de 4 intentos fallidos desde este dispositivo. Póngase en contacto con el administrador para solicitar el desbloqueo.
-      </div>
-      
-      <form id="loginForm" onsubmit="login(event)" autocomplete="off">
-        <input type="text" name="fake_user_field" style="display:none;" />
-        <input type="password" name="fake_pass_field" style="display:none;" />
-
-        <div style="text-align:left; margin-bottom:15px;">
-          <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">USUARIO</label>
-          <input type="text" id="userInput" class="input-sys" placeholder="Usuario" autocomplete="new-password" required>
-        </div>
-        <div style="text-align:left; margin-bottom:15px;">
-          <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">CONTRASEÑA</label>
-          <input type="password" id="passInput" class="input-sys" placeholder="••••••••" autocomplete="new-password" required>
+    <div class="container">
+        <!-- Pestañas de Navegación -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="verPestana('factura')">Factura Vertical</button>
+            <button class="tab-btn" onclick="verPestana('panel-ip')">Control de Bloqueo de IPs</button>
         </div>
 
-        <div id="attemptCounter" style="font-size:0.75rem; color:var(--danger); margin-bottom:15px; font-weight:bold; display:none;"></div>
+        <!-- PESTAÑA FACTURA -->
+        <div id="factura" class="tab-content active">
+            <div class="factura-box">
+                <div class="header-factura">
+                    <div class="empresa-info">
+                        <h2>Mi Empresa S.A.</h2>
+                        <p>NIT / RUC: 123456789</p>
+                        <p>Dirección: Calle Principal #123</p>
+                        <p>Teléfono: +58 412 0000000</p>
+                    </div>
+                    <div class="factura-detalles">
+                        <h1>FACTURA</h1>
+                        <p><strong>N°:</strong> 000125</p>
+                        <p><strong>Fecha:</strong> 29/07/2026</p>
+                    </div>
+                </div>
 
-        <button type="submit" id="btnLoginSubmit" class="btn-primary">Ingresar al Sistema</button>
-      </form>
-    </div>
-  </div>
+                <div class="cliente-box">
+                    <strong>Facturar a:</strong><br>
+                    Cliente Ejemplo S.A.<br>
+                    <strong>ID / RIF:</strong> J-987654321<br>
+                    <strong>Dirección:</strong> Av. Bolivar, Edificio Centro
+                </div>
 
-  <!-- APLICACIÓN PRINCIPAL -->
-  <div id="app-container">
-    <aside>
-      <div class="brand">📦 <span>TÍO JULIÁN</span></div>
-      <nav>
-        <ul>
-          <li><a href="#" id="m-dash" class="active" onclick="showTab('dash')">📊 Panel General</a></li>
-          <li><a href="#" id="m-inv" onclick="showTab('inv')">📋 Inventario</a></li>
-          <li><a href="#" id="m-pos" onclick="showTab('pos')">📄 Facturación (32 Ítems)</a></li>
-          <li><a href="#" id="m-hist" onclick="showTab('hist')">📂 Facturas Guardadas</a></li>
-          <li><a href="#" id="m-sales" onclick="showTab('sales')">📈 Ventas Diarias</a></li>
-          <li><a href="#" id="m-sec" onclick="showTab('sec')">🛡️ Seguridad / IPs</a></li>
-        </ul>
-      </nav>
+                <table class="tabla-factura">
+                    <thead>
+                        <tr>
+                            <th style="width: 50%;">Descripción</th>
+                            <th class="text-center" style="width: 15%;">Cant.</th>
+                            <th class="text-right" style="width: 18%;">Precio Unit.</th>
+                            <th class="text-right" style="width: 17%;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Desarrollo de Sistema Web</td>
+                            <td class="text-center">1</td>
+                            <td class="text-right">$100.00</td>
+                            <td class="text-right">$100.00</td>
+                        </tr>
+                        <tr>
+                            <td>Mantenimiento y Soporte</td>
+                            <td class="text-center">1</td>
+                            <td class="text-right">$30.00</td>
+                            <td class="text-right">$30.00</td>
+                        </tr>
+                    </tbody>
+                </table>
 
-      <div style="margin-top:auto; display:flex; flex-direction:column; gap:8px;">
-        <button onclick="exportData()" class="btn-primary" style="background:#475569; font-size:0.75rem; padding:8px;">💾 Resp. Copia de Datos</button>
-        <button onclick="importData()" class="btn-primary" style="background:#64748b; font-size:0.75rem; padding:8px;">📂 Cargar Copia de Datos</button>
-        <input type="file" id="importFile" style="display:none;" onchange="processImport(event)">
-        <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.85rem; font-weight:700; margin-top:5px;">
-          🚪 Salir
-        </button>
-      </div>
-    </aside>
+                <div class="totales-wrapper">
+                    <div class="totales-box">
+                        <table>
+                            <tr>
+                                <td class="text-right">Subtotal:</td>
+                                <td class="text-right">$130.00</td>
+                            </tr>
+                            <tr>
+                                <td class="text-right">IVA (16%):</td>
+                                <td class="text-right">$20.80</td>
+                            </tr>
+                            <tr class="total-destacado">
+                                <td class="text-right">Total a Pagar:</td>
+                                <td class="text-right">$150.80</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
 
-    <main>
-      
-      <!-- PANEL GENERAL -->
-      <div id="sec-dash">
-        <h1 style="margin-bottom:20px; color:var(--text);">Resumen Operativo</h1>
-        <div class="grid-3">
-          <div class="card">
-            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">TOTAL PRODUCTOS DIVERSOS</span>
-            <h2 id="dash-count" style="font-size:2rem; margin-top:5px; color:var(--accent);">0</h2>
-          </div>
-          <div class="card">
-            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">UNIDADES TOTALES EN STOCK</span>
-            <h2 id="dash-stock" style="font-size:2rem; margin-top:5px; color:var(--success);">0</h2>
-          </div>
-          <div class="card">
-            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">VALOR INVENTARIO (USD)</span>
-            <h2 id="dash-val" style="font-size:2rem; margin-top:5px; color:var(--accent);">$0.00</h2>
-          </div>
-        </div>
-      </div>
-
-      <!-- INVENTARIO -->
-      <div id="sec-inv" style="display:none;">
-        <h1 style="margin-bottom:20px;">Gestión de Inventario y Control de Stock</h1>
-        
-        <div class="card">
-          <h3 style="margin-bottom:15px; font-size:0.95rem;">Registrar Nuevo Producto</h3>
-          
-          <div style="display:grid; grid-template-columns: 1fr 2fr 1fr 1fr 1fr auto; gap:10px; align-items:end; margin-bottom:12px;">
-            <div>
-              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CÓDIGO (AUTO)</label>
-              <input type="text" id="pCode" class="input-sys" readonly style="background:#e2e8f0; font-weight:bold;">
+                <div class="footer-factura">
+                    <p>¡Gracias por su preferencia!</p>
+                </div>
             </div>
-            <div>
-              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">DESCRIPCIÓN DEL PRODUCTO</label>
-              <input type="text" id="pDesc" class="input-sys" placeholder="Nombre del artículo">
-            </div>
-            <div>
-              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 1 DETAL ($ USD)</label>
-              <input type="number" id="pPrice1" class="input-sys" placeholder="0.00" step="0.01">
-            </div>
-            <div>
-              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 2 MAYOR ($ USD)</label>
-              <input type="number" id="pPrice2" class="input-sys" placeholder="0.00" step="0.01">
-            </div>
-            <div>
-              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">STOCK INICIAL</label>
-              <input type="number" id="pStock" class="input-sys" value="50">
-            </div>
-            <div style="display:flex; align-items:center; gap:8px; padding-bottom:8px;">
-              <input type="checkbox" id="pHasIva" style="width:18px; height:18px; cursor:pointer;" checked>
-              <label for="pHasIva" style="font-size:0.8rem; font-weight:700; cursor:pointer;">IVA 16%</label>
-            </div>
-          </div>
-          <button onclick="saveProduct()" class="btn-primary">+ Guardar Producto en Inventario</button>
         </div>
 
-        <div class="card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3>Productos Registrados</h3>
-            <input type="text" id="searchInv" class="input-sys" placeholder="Buscar producto..." oninput="renderInventoryTable()" style="width:220px;">
-          </div>
-          
-          <table class="table-sys">
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Descripción</th>
-                <th>Impuesto</th>
-                <th>Stock (Quedan / Inicial)</th>
-                <th>Precio 1 - Detal (USD)</th>
-                <th>Precio 2 - Mayor (USD)</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="invTable"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- FACTURACIÓN (HABILITADA PARA 32 ÍTEMS VERTICALES) -->
-      <div id="sec-pos" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;" class="no-print">
-          <h1>Punto de Facturación (Soporta hasta 32 Ítems)</h1>
-          <div style="display:flex; gap:10px;">
-            <button class="btn-primary" onclick="guardarEImprimirNota()" style="background:#10b981; width:auto; padding:10px 18px;">🖨️ Guardar e Imprimir (Vertical)</button>
-            <button class="btn-primary" onclick="nuevaFactura()" style="background:var(--accent); width:auto; padding:10px 18px;">+ Nueva Nota Limpia</button>
-          </div>
-        </div>
-
-        <div class="card no-print">
-          <h3 style="font-size:0.9rem; margin-bottom:10px;">Encabezado y Datos del Documento</h3>
-          <div class="grid-3" style="margin-bottom:12px;">
-            <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">Nº NOTA DE ENTREGA (AUTO)</label>
-              <input type="text" id="fInputNum" class="input-sys" readonly style="background:#e2e8f0; font-weight:bold;">
-            </div>
-            <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FECHA DE EMISIÓN</label>
-              <input type="date" id="fInputEmision" class="input-sys" onchange="autoCalculateExpiry()">
-            </div>
-            <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FECHA VENCIMIENTO (+15 DÍAS)</label>
-              <input type="date" id="fInputVenc" class="input-sys" onchange="updateFactura()">
-            </div>
-          </div>
-
-          <div class="grid-2" style="margin-bottom:15px;">
-            <input type="text" id="fInputName" class="input-sys" placeholder="Nombre / Razón Social" oninput="updateFactura()">
-            <input type="text" id="fInputDir" class="input-sys" placeholder="Dirección Fiscal" oninput="updateFactura()">
-            <input type="text" id="fInputRif" class="input-sys" placeholder="RIF / C.I." oninput="updateFactura()">
-            <input type="text" id="fInputPhone" class="input-sys" placeholder="Teléfono de Contacto" oninput="updateFactura()">
-          </div>
-
-          <div class="grid-2" style="margin-bottom:15px;">
-            <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE PESOS (COP MANUAL)</label>
-              <input type="number" id="fManualCop" class="input-sys" placeholder="0.00" step="0.01" oninput="updateFactura()">
-            </div>
-            <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE BOLÍVARES (BS MANUAL)</label>
-              <input type="number" id="fManualBs" class="input-sys" placeholder="0.00" step="0.01" oninput="updateFactura()">
-            </div>
-          </div>
-
-          <h3 style="font-size:0.9rem; margin-bottom:10px;">Añadir Productos (Límite: 32 Ítems por hoja)</h3>
-          <div style="margin-bottom: 10px;">
-            <input type="text" id="posProductSearch" class="input-sys" placeholder="🔍 Buscar producto..." oninput="filterPosProducts()" style="border-color: var(--accent); background: #ffffff;">
-          </div>
-
-          <div style="display:flex; gap:10px;">
-            <select id="pSelect" class="input-sys" style="flex:2;"></select>
-            <select id="priceType" class="input-sys" style="flex:1;">
-              <option value="1">Precio 1 (Detal)</option>
-              <option value="2">Precio 2 (Mayor)</option>
-            </select>
-            <input type="number" id="pQty" class="input-sys" value="1" style="width:90px;">
-            <button onclick="addToCart()" class="btn-primary" style="width:auto; padding:0 20px;">+ Añadir</button>
-          </div>
-        </div>
-
-        <!-- VISTA DE IMPRESIÓN (DISEÑO VERTICAL / PORTRAIT PARA 32 FILAS) -->
-        <div class="print-sheet">
-          <div class="invoice-preview">
-            <div class="doc-header">
-              <div class="doc-title">Comercializadora Tío Julián</div>
-              <div class="doc-sub">"De la mano de sus clientes" — NOTA DE ENTREGA</div>
-              <div class="doc-fiscal">RIF: 164227940 &nbsp;|&nbsp; DIR: Pirineos 1</div>
-              <div style="margin-top:2px; font-weight:800; font-size:0.7rem;">
-                NOTA Nº: <span class="lbl-fnum">0000001</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
-                EMISIÓN: <span class="lbl-femision">--/--/----</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
-                VENC: <span class="lbl-fvenc">--/--/----</span>
-              </div>
+        <!-- PESTAÑA PANEL DE IPS -->
+        <div id="panel-ip" class="tab-content">
+            <h2>Gestión de IPs Bloqueadas</h2>
+            
+            <div class="status-card">
+                <strong>Control de Red:</strong> Las IPs añadidas a esta lista tendrán la conexión interrumpida al intentar acceder al sitio.
             </div>
 
-            <div class="doc-client">
-              <div>CLIENTE: <span class="lbl-fname">---</span> &nbsp;&nbsp;|&nbsp;&nbsp; RIF/CI: <span class="lbl-frif">---</span></div>
-              <div>DIRECCIÓN: <span class="lbl-fdir">---</span> &nbsp;&nbsp;|&nbsp;&nbsp; TEL: <span class="lbl-fphone">---</span></div>
+            <div class="ip-controls">
+                <input type="text" id="input-ip" placeholder="Escribe la IP a bloquear (Ej: 192.168.1.50)">
+                <button class="btn btn-danger" onclick="bloquearIP()">Bloquear IP</button>
             </div>
 
-            <table class="doc-table">
-              <thead>
-                <tr>
-                  <th style="width:4%;">#</th>
-                  <th style="width:14%;">CÓDIGO</th>
-                  <th>DESCRIPCIÓN DEL PRODUCTO</th>
-                  <th style="text-align:center; width:5%;">IVA</th>
-                  <th style="text-align:right; width:8%;">CANT</th>
-                  <th style="text-align:right; width:12%;">PRECIO U.</th>
-                  <th style="text-align:right; width:13%;">TOTAL ($)</th>
-                </tr>
-              </thead>
-              <tbody class="cart-table-body"></tbody>
+            <h3>IPs Bloqueadas Actualmente</h3>
+            <table class="tabla-ips">
+                <thead>
+                    <tr>
+                        <th>Dirección IP</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-ips-body">
+                    <!-- Se genera dinámicamente -->
+                </tbody>
             </table>
-
-            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div class="qrcode-box"></div>
-                <div style="font-size:0.55rem; max-width:180px; line-height:1.1;">
-                  Verificación Digital Comercializadora Tío Julián.
-                </div>
-              </div>
-
-              <div class="doc-totals">
-                <div>EXENTO: $<span class="lbl-exempt">0.00</span> | BASE IMPONIBLE: $<span class="lbl-sub">0.00</span> | I.V.A. (16%): $<span class="lbl-iva">0.00</span></div>
-                <div style="font-size:0.85rem; font-weight:900; border-top:1px solid #000; padding-top:1px;">
-                  TOTAL USD: $<span class="lbl-total-usd">0.00</span>
-                </div>
-                <div style="font-size:0.68rem;">EQUIV: $<span class="lbl-total-cop">0.00</span> COP &nbsp;|&nbsp; <span class="lbl-total-bs">0.00</span> Bs.</div>
-              </div>
-            </div>
-          </div>
         </div>
-
-      </div>
-
-      <!-- HISTORIAL DE FACTURAS -->
-      <div id="sec-hist" style="display:none;">
-        <h1 style="margin-bottom:20px;">Historial de Notas Emitidas</h1>
-        <div class="card">
-          <table class="table-sys">
-            <thead>
-              <tr>
-                <th>Nº Nota</th>
-                <th>Fecha Emisión</th>
-                <th>Cliente</th>
-                <th>Total USD</th>
-                <th>Total COP</th>
-                <th>Total BS</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="histTable"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- VENTAS DIARIAS -->
-      <div id="sec-sales" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;" class="no-print">
-          <h1>Reporte Diario de Ventas</h1>
-          <button class="btn-primary" onclick="window.print()" style="width:auto; padding:10px 18px;">🖨️ Imprimir Reporte</button>
-        </div>
-
-        <div class="card no-print">
-          <label style="font-size:0.75rem; font-weight:bold;">SELECCIONAR FECHA:</label>
-          <input type="date" id="salesDateFilter" class="input-sys" style="width:200px; display:inline-block; margin-left:10px;" onchange="renderDailySales()">
-        </div>
-
-        <div class="card">
-          <h2 id="salesReportTitle" style="font-size:1.1rem; margin-bottom:15px; color:var(--accent);">Ventas del Día</h2>
-          <div class="grid-3" style="margin-bottom:20px;">
-            <div>
-              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">NOTAS GENERADAS</span>
-              <h3 id="salesCount" style="font-size:1.5rem;">0</h3>
-            </div>
-            <div>
-              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">RECAUDADO USD</span>
-              <h3 id="salesTotalUsd" style="font-size:1.5rem; color:var(--success);">$0.00 USD</h3>
-            </div>
-            <div>
-              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">RECAUDADO COP / BS</span>
-              <h3 id="salesTotalAlt" style="font-size:1.1rem;">$0.00 / 0.00 Bs</h3>
-            </div>
-          </div>
-
-          <table class="table-sys">
-            <thead>
-              <tr>
-                <th>Nº Nota</th>
-                <th>Detalle de Productos</th>
-                <th>Total ($ USD)</th>
-              </tr>
-            </thead>
-            <tbody id="salesTable"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- MÓDULO DE SEGURIDAD / DESBLOQUEO DE IPS -->
-      <div id="sec-sec" style="display:none;">
-        <h1 style="margin-bottom:10px; color:var(--danger);">🛡️ Escudo de Seguridad & Registro de Bloqueos</h1>
-        <p style="color:var(--text-muted); margin-bottom:20px;">Monitoreo en tiempo real de direcciones IP bloqueadas por superar 4 intentos fallidos de inicio de sesión.</p>
-
-        <div class="card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3>Dispositivos e IPs Bloqueados</h3>
-            <button onclick="clearAllSecurityLogs()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:bold;">Restablecer Todo</button>
-          </div>
-
-          <table class="table-sys">
-            <thead>
-              <tr>
-                <th>Dirección IP Detectada</th>
-                <th>Dispositivo / Navegador Atacante</th>
-                <th>Fecha y Hora del Intentos</th>
-                <th>Intentos Fallidos</th>
-                <th>Estado</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody id="securityTable"></tbody>
-          </table>
-        </div>
-      </div>
-
-    </main>
-  </div>
-
-  <script>
-    const GAMMA_SITE_URL = "https://comercializadoratiojulia-w8lw1af.gamma.site/";
-
-    // -------------------------------------------------------------------
-    // FIREWALL Y SISTEMA DE SEGURIDAD ANTI-HACKEO DE IP
-    // -------------------------------------------------------------------
-    let userIP = "192.168.1.100";
-    
-    fetch('https://api.ipify.org?format=json')
-      .then(res => res.json())
-      .then(data => { userIP = data.ip; checkIPStatus(); })
-      .catch(() => { checkIPStatus(); });
-
-    function getDeviceDescription() {
-      const ua = navigator.userAgent;
-      let dev = "Equipo Desconocido";
-      if (ua.includes("Windows")) dev = "Windows PC";
-      else if (ua.includes("Macintosh")) dev = "Mac Apple";
-      else if (ua.includes("Android")) dev = "Teléfono Android";
-      else if (ua.includes("iPhone")) dev = "iPhone Apple";
-
-      let browser = "Navegador Web";
-      if (ua.includes("Chrome")) browser = "Google Chrome";
-      else if (ua.includes("Firefox")) browser = "Mozilla Firefox";
-      else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Apple Safari";
-      else if (ua.includes("Edg")) browser = "Microsoft Edge";
-
-      return `${dev} (${browser})`;
-    }
-
-    function getBlockedIPs() {
-      return JSON.parse(localStorage.getItem('tj_blocked_ips')) || {};
-    }
-
-    function saveBlockedIPs(data) {
-      localStorage.setItem('tj_blocked_ips', JSON.stringify(data));
-    }
-
-    function checkIPStatus() {
-      const blocked = getBlockedIPs();
-      const current = blocked[userIP];
-
-      if (current && current.attempts >= 4) {
-        document.getElementById('ipBlockedMessage').style.display = 'block';
-        document.getElementById('loginForm').style.display = 'none';
-      } else {
-        document.getElementById('ipBlockedMessage').style.display = 'none';
-        document.getElementById('loginForm').style.display = 'block';
-      }
-    }
-
-    function registerFailedAttempt() {
-      const blocked = getBlockedIPs();
-      if (!blocked[userIP]) {
-        blocked[userIP] = {
-          ip: userIP,
-          device: getDeviceDescription(),
-          attempts: 0,
-          lastDate: new Date().toLocaleString()
-        };
-      }
-
-      blocked[userIP].attempts += 1;
-      blocked[userIP].lastDate = new Date().toLocaleString();
-      saveBlockedIPs(blocked);
-
-      const remaining = 4 - blocked[userIP].attempts;
-      const counterEl = document.getElementById('attemptCounter');
-      counterEl.style.display = 'block';
-
-      if (remaining > 0) {
-        counterEl.innerText = `⚠️ Clave incorrecta. Le quedan ${remaining} intento(s) antes de bloquear su IP.`;
-      } else {
-        checkIPStatus();
-      }
-    }
-
-    function unblockIP(ipToUnblock) {
-      const blocked = getBlockedIPs();
-      if (blocked[ipToUnblock]) {
-        delete blocked[ipToUnblock];
-        saveBlockedIPs(blocked);
-        renderSecurityTable();
-        checkIPStatus();
-        alert(`La IP ${ipToUnblock} ha sido desbloqueada exitosamente.`);
-      }
-    }
-
-    function clearAllSecurityLogs() {
-      if (confirm("¿Desbloquear todas las IPs registradas?")) {
-        localStorage.removeItem('tj_blocked_ips');
-        renderSecurityTable();
-        checkIPStatus();
-      }
-    }
-
-    function renderSecurityTable() {
-      const tbody = document.getElementById('securityTable');
-      tbody.innerHTML = '';
-      const blocked = getBlockedIPs();
-
-      const keys = Object.keys(blocked);
-      if (keys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No hay IPs bloqueadas por el momento. El sistema está seguro.</td></tr>`;
-        return;
-      }
-
-      keys.forEach(ip => {
-        const item = blocked[ip];
-        const isBlocked = item.attempts >= 4;
-        tbody.innerHTML += `
-          <tr>
-            <td><strong>${item.ip}</strong></td>
-            <td>${item.device}</td>
-            <td>${item.lastDate}</td>
-            <td><span style="color:var(--danger); font-weight:bold;">${item.attempts} / 4</span></td>
-            <td>
-              <span class="badge ${isBlocked ? 'badge-exempt' : 'badge-iva'}" style="${isBlocked ? 'background:#fee2e2; color:#991b1b;' : ''}">
-                ${isBlocked ? '⛔ BLOQUEADO' : '⚠️ En Advertencia'}
-              </span>
-            </td>
-            <td>
-              <button onclick="unblockIP('${item.ip}')" style="background:var(--success); color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">Desbloquear</button>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-
-    // -------------------------------------------------------------------
-    // OPERACIÓN DEL SISTEMA, FACTURACIÓN Y DATOS
-    // -------------------------------------------------------------------
-    function generateOfflineQR(text) {
-      const encodedText = encodeURIComponent(text);
-      return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${encodedText}" alt="QR" width="50" height="50" />`;
-    }
-
-    function loadStorageWithBackup() {
-      let inv = JSON.parse(localStorage.getItem('tj_inv_v7')) || [];
-      let hist = JSON.parse(localStorage.getItem('tj_invoices_v7')) || [];
-
-      const versions = ['v6', 'v5', 'v4', 'v3', 'v2', 'v1', ''];
-      if (inv.length === 0) {
-        for (let v of versions) {
-          const key = v ? `tj_inv_${v}` : 'tj_inv';
-          const oldInv = JSON.parse(localStorage.getItem(key));
-          if (oldInv && oldInv.length > 0) { inv = oldInv; break; }
-        }
-      }
-
-      if (hist.length === 0) {
-        for (let v of versions) {
-          const key = v ? `tj_invoices_${v}` : 'tj_invoices';
-          const oldHist = JSON.parse(localStorage.getItem(key));
-          if (oldHist && oldHist.length > 0) { hist = oldHist; break; }
-        }
-      }
-
-      return { inv, hist };
-    }
-
-    const { inv: initialInv, hist: initialHist } = loadStorageWithBackup();
-    let inventory = initialInv;
-    let invoicesHistory = initialHist;
-    let nextNotaNumber = parseInt(localStorage.getItem('tj_nota_num_v7')) || 1;
-    let nextProdNum = parseInt(localStorage.getItem('tj_prod_num_v7')) || (inventory.length + 1);
-    let cart = [];
-
-    saveToStorage();
-
-    function checkPublicRoute() {
-      if (window.location.hash.startsWith('#verificar')) {
-        const params = new URLSearchParams(window.location.hash.split('?')[1]);
-        const num = params.get('num');
-        const monto = params.get('monto');
-        const fecha = params.get('fecha');
-
-        document.getElementById('pub-num').innerText = num || 'Desconocido';
-        document.getElementById('pub-monto').innerText = monto ? `$${parseFloat(monto).toFixed(2)} USD` : '---';
-        document.getElementById('pub-fecha').innerText = fecha || '---';
-
-        document.getElementById('public-qr-screen').style.display = 'flex';
-      } else {
-        document.getElementById('public-qr-screen').style.display = 'none';
-      }
-    }
-    window.addEventListener('hashchange', checkPublicRoute);
-
-    function initDates() {
-      const today = new Date();
-      const todayStr = today.toISOString().split('T')[0];
-      document.getElementById('fInputEmision').value = todayStr;
-      document.getElementById('salesDateFilter').value = todayStr;
-      
-      const formattedNum = String(nextNotaNumber).padStart(7, '0');
-      document.getElementById('fInputNum').value = formattedNum;
-
-      updateAutoProdCode();
-      autoCalculateExpiry();
-    }
-
-    function updateAutoProdCode() {
-      const codeStr = "PROD-" + String(nextProdNum).padStart(4, '0');
-      document.getElementById('pCode').value = codeStr;
-    }
-
-    function autoCalculateExpiry() {
-      const emisionVal = document.getElementById('fInputEmision').value;
-      if (!emisionVal) return;
-
-      const emisionDate = new Date(emisionVal + 'T00:00:00');
-      emisionDate.setDate(emisionDate.getDate() + 15);
-      
-      document.getElementById('fInputVenc').value = emisionDate.toISOString().split('T')[0];
-      updateFactura();
-    }
-
-    function login(e) {
-      e.preventDefault();
-      const u = document.getElementById('userInput').value;
-      const p = document.getElementById('passInput').value;
-
-      if (u === 'admin' && p === '15597680') {
-        const blocked = getBlockedIPs();
-        if (blocked[userIP]) {
-          delete blocked[userIP];
-          saveBlockedIPs(blocked);
-        }
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-container').style.display = 'flex';
-        initDates();
-        renderAll();
-      } else {
-        registerFailedAttempt();
-      }
-    }
-
-    function showTab(tab) {
-      document.getElementById('sec-dash').style.display = tab === 'dash' ? 'block' : 'none';
-      document.getElementById('sec-inv').style.display = tab === 'inv' ? 'block' : 'none';
-      document.getElementById('sec-pos').style.display = tab === 'pos' ? 'block' : 'none';
-      document.getElementById('sec-hist').style.display = tab === 'hist' ? 'block' : 'none';
-      document.getElementById('sec-sales').style.display = tab === 'sales' ? 'block' : 'none';
-      document.getElementById('sec-sec').style.display = tab === 'sec' ? 'block' : 'none';
-
-      document.getElementById('m-dash').className = tab === 'dash' ? 'active' : '';
-      document.getElementById('m-inv').className = tab === 'inv' ? 'active' : '';
-      document.getElementById('m-pos').className = tab === 'pos' ? 'active' : '';
-      document.getElementById('m-hist').className = tab === 'hist' ? 'active' : '';
-      document.getElementById('m-sales').className = tab === 'sales' ? 'active' : '';
-      document.getElementById('m-sec').className = tab === 'sec' ? 'active' : '';
-
-      if (tab === 'sales') renderDailySales();
-      if (tab === 'hist') renderHistoryTable();
-      if (tab === 'sec') renderSecurityTable();
-    }
-
-    function saveProduct() {
-      const code = document.getElementById('pCode').value;
-      const desc = document.getElementById('pDesc').value;
-      const p1 = parseFloat(document.getElementById('pPrice1').value);
-      const p2 = parseFloat(document.getElementById('pPrice2').value) || p1;
-      const stock = parseInt(document.getElementById('pStock').value) || 0;
-      const hasIva = document.getElementById('pHasIva').checked;
-
-      if(!desc || isNaN(p1)) return alert("Por favor escriba la descripción y el Precio 1 en USD.");
-
-      inventory.push({ code, desc, p1, p2, hasIva, initialStock: stock, currentStock: stock });
-      nextProdNum++;
-      
-      saveToStorage();
-
-      document.getElementById('pDesc').value = '';
-      document.getElementById('pPrice1').value = '';
-      document.getElementById('pPrice2').value = '';
-      document.getElementById('pStock').value = '50';
-
-      updateAutoProdCode();
-      renderAll();
-    }
-
-    function deleteProduct(idx) {
-      if(confirm("¿Eliminar este producto?")) {
-        inventory.splice(idx, 1);
-        saveToStorage();
-        renderAll();
-      }
-    }
-
-    function filterPosProducts() {
-      const query = document.getElementById('posProductSearch').value.toLowerCase().trim();
-      const pSelect = document.getElementById('pSelect');
-      const selectedVal = pSelect.value;
-      
-      pSelect.innerHTML = '';
-
-      let matches = 0;
-      inventory.forEach((item, idx) => {
-        if (item.code.toLowerCase().includes(query) || item.desc.toLowerCase().includes(query)) {
-          pSelect.innerHTML += `<option value="${idx}">${item.code} — ${item.desc} (Stock: ${item.currentStock})</option>`;
-          matches++;
-        }
-      });
-
-      if (matches === 0) {
-        pSelect.innerHTML = `<option value="">Sin coincidencias para "${query}"</option>`;
-      } else if (selectedVal !== null && pSelect.querySelector(`option[value="${selectedVal}"]`)) {
-        pSelect.value = selectedVal;
-      }
-    }
-
-    function addToCart() {
-      if (cart.length >= 32) {
-        return alert("Ha alcanzado el límite máximo de 32 ítems permitidos por factura.");
-      }
-
-      const idx = document.getElementById('pSelect').value;
-      const pType = document.getElementById('priceType').value;
-      const qty = parseFloat(document.getElementById('pQty').value);
-
-      if(idx === "" || !inventory[idx]) return alert("Seleccione un producto válido");
-      if(isNaN(qty) || qty <= 0) return alert("Cantidad no válida");
-
-      const item = inventory[idx];
-
-      if (qty > item.currentStock) {
-        return alert(`Stock insuficiente. Quedan ${item.currentStock} unidades.`);
-      }
-
-      const selectedPrice = pType === '1' ? item.p1 : item.p2;
-
-      item.currentStock -= qty;
-      saveToStorage();
-
-      cart.push({ code: item.code, desc: item.desc, qty, price: selectedPrice, hasIva: item.hasIva });
-      
-      filterPosProducts();
-      renderCart();
-      renderInventoryTable();
-    }
-
-    function guardarEImprimirNota() {
-      if (cart.length === 0) return alert("Añada al menos un producto antes de imprimir.");
-
-      const numStr = document.getElementById('fInputNum').value;
-      const totalUsd = parseFloat(document.querySelector('.lbl-total-usd').innerText.replace(/,/g, '')) || 0;
-      const totalCop = parseFloat(document.getElementById('fManualCop').value) || 0;
-      const totalBs = parseFloat(document.getElementById('fManualBs').value) || 0;
-
-      const notaData = {
-        num: numStr,
-        emision: document.getElementById('fInputEmision').value,
-        venc: document.getElementById('fInputVenc').value,
-        client: document.getElementById('fInputName').value || 'CLIENTE GENERAL',
-        dir: document.getElementById('fInputDir').value || 'S/D',
-        rif: document.getElementById('fInputRif').value || 'V-00000000',
-        phone: document.getElementById('fInputPhone').value || 'S/T',
-        cart: [...cart],
-        totalUsd,
-        totalCop,
-        totalBs
-      };
-
-      invoicesHistory.push(notaData);
-      saveToStorage();
-
-      window.print();
-    }
-
-    function nuevaFactura() {
-      nextNotaNumber++;
-      saveToStorage();
-      cart = [];
-      
-      document.getElementById('fInputName').value = '';
-      document.getElementById('fInputDir').value = '';
-      document.getElementById('fInputRif').value = '';
-      document.getElementById('fInputPhone').value = '';
-      document.getElementById('fManualCop').value = '';
-      document.getElementById('fManualBs').value = '';
-      document.getElementById('posProductSearch').value = '';
-      
-      initDates();
-      renderAll();
-    }
-
-    function updateFactura() {
-      const num = document.getElementById('fInputNum').value;
-      const emision = document.getElementById('fInputEmision').value;
-      const venc = document.getElementById('fInputVenc').value;
-      const name = document.getElementById('fInputName').value || '---';
-      const dir = document.getElementById('fInputDir').value || '---';
-      const rif = document.getElementById('fInputRif').value || '---';
-      const phone = document.getElementById('fInputPhone').value || '---';
-
-      document.querySelectorAll('.lbl-fnum').forEach(el => el.innerText = num);
-      document.querySelectorAll('.lbl-femision').forEach(el => el.innerText = emision);
-      document.querySelectorAll('.lbl-fvenc').forEach(el => el.innerText = venc);
-      document.querySelectorAll('.lbl-fname').forEach(el => el.innerText = name);
-      document.querySelectorAll('.lbl-fdir').forEach(el => el.innerText = dir);
-      document.querySelectorAll('.lbl-frif').forEach(el => el.innerText = rif);
-      document.querySelectorAll('.lbl-fphone').forEach(el => el.innerText = phone);
-
-      const manualCop = parseFloat(document.getElementById('fManualCop').value) || 0;
-      const manualBs = parseFloat(document.getElementById('fManualBs').value) || 0;
-
-      document.querySelectorAll('.lbl-total-cop').forEach(el => el.innerText = manualCop.toLocaleString('en-US', {minimumFractionDigits: 2}));
-      document.querySelectorAll('.lbl-total-bs').forEach(el => el.innerText = manualBs.toLocaleString('en-US', {minimumFractionDigits: 2}));
-    }
-
-    function renderInventoryTable() {
-      const invTbody = document.getElementById('invTable');
-      const filter = document.getElementById('searchInv')?.value.toLowerCase() || '';
-
-      invTbody.innerHTML = '';
-
-      inventory.forEach((item, idx) => {
-        if(item.desc.toLowerCase().includes(filter) || item.code.toLowerCase().includes(filter)) {
-          invTbody.innerHTML += `
-            <tr>
-              <td><strong>${item.code}</strong></td>
-              <td>${item.desc}</td>
-              <td>
-                <span class="badge ${item.hasIva ? 'badge-iva' : 'badge-exempt'}">
-                  ${item.hasIva ? 'IVA 16%' : 'Exento'}
-                </span>
-              </td>
-              <td>
-                <span style="font-weight:bold; color: ${item.currentStock > 5 ? 'var(--accent)' : 'var(--danger)'};">
-                  ${item.currentStock} dispon.
-                </span>
-              </td>
-              <td><strong>$${item.p1.toFixed(2)} USD</strong></td>
-              <td><strong>$${item.p2.toFixed(2)} USD</strong></td>
-              <td>
-                <button onclick="deleteProduct(${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:700;">Eliminar</button>
-              </td>
-            </tr>
-          `;
-        }
-      });
-    }
-
-    function renderCart() {
-      const tbodies = document.querySelectorAll('.cart-table-body');
-      tbodies.forEach(tb => tb.innerHTML = '');
-      
-      let baseExempt = 0;
-      let baseImponibleTotal = 0;
-
-      cart.forEach((item, index) => {
-        const itemTotal = item.qty * item.price;
-        if (item.hasIva) {
-          baseImponibleTotal += itemTotal;
-        } else {
-          baseExempt += itemTotal;
+    </div>
+
+    <script>
+        function verPestana(idPestana) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(idPestana).classList.add('active');
         }
 
-        const rowHTML = `
-          <tr>
-            <td>${index + 1}</td>
-            <td>${item.code}</td>
-            <td>${item.desc}</td>
-            <td style="text-align:center;">${item.hasIva ? 'G' : 'E'}</td>
-            <td style="text-align:right;">${item.qty.toFixed(2)}</td>
-            <td style="text-align:right;">${item.price.toFixed(2)}</td>
-            <td style="text-align:right;">${itemTotal.toFixed(2)}</td>
-          </tr>
-        `;
-        tbodies.forEach(tb => tb.innerHTML += rowHTML);
-      });
+        let listaIps = JSON.parse(localStorage.getItem('ips_bloqueadas')) || ['192.168.1.50'];
 
-      const baseImponible = baseImponibleTotal / 1.16;
-      const iva = baseImponibleTotal - baseImponible;
-      const grandTotal = baseExempt + baseImponibleTotal;
+        function renderizarIps() {
+            const tbody = document.getElementById('lista-ips-body');
+            tbody.innerHTML = '';
 
-      document.querySelectorAll('.lbl-exempt').forEach(el => el.innerText = baseExempt.toFixed(2));
-      document.querySelectorAll('.lbl-sub').forEach(el => el.innerText = baseImponible.toFixed(2));
-      document.querySelectorAll('.lbl-iva').forEach(el => el.innerText = iva.toFixed(2));
-      document.querySelectorAll('.lbl-total-usd').forEach(el => el.innerText = grandTotal.toFixed(2));
+            if (listaIps.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center">No hay ninguna IP bloqueada actualmente.</td></tr>';
+                return;
+            }
 
-      const qrPublicUrl = `${GAMMA_SITE_URL}#verificar?num=${document.getElementById('fInputNum').value}&monto=${grandTotal.toFixed(2)}&fecha=${document.getElementById('fInputEmision').value}`;
-      
-      document.querySelectorAll(".qrcode-box").forEach(box => {
-        box.innerHTML = generateOfflineQR(qrPublicUrl);
-      });
-
-      updateFactura();
-    }
-
-    function renderHistoryTable() {
-      const tbody = document.getElementById('histTable');
-      tbody.innerHTML = '';
-
-      invoicesHistory.slice().reverse().forEach(inv => {
-        tbody.innerHTML += `
-          <tr>
-            <td><strong>${inv.num}</strong></td>
-            <td>${inv.emision}</td>
-            <td>${inv.client}</td>
-            <td><strong>$${inv.totalUsd.toFixed(2)} USD</strong></td>
-            <td>$${inv.totalCop.toLocaleString()} COP</td>
-            <td>${inv.totalBs.toFixed(2)} Bs</td>
-            <td>
-              <button onclick="reimprimirNota('${inv.num}')" style="background:var(--accent); color:#fff; border:none; padding:4px 10px; border-radius:4px; cursor:pointer;">Ver / Imprimir</button>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-    function reimprimirNota(num) {
-      const inv = invoicesHistory.find(i => i.num === num);
-      if(!inv) return;
-
-      document.getElementById('fInputNum').value = inv.num;
-      document.getElementById('fInputEmision').value = inv.emision;
-      document.getElementById('fInputVenc').value = inv.venc;
-      document.getElementById('fInputName').value = inv.client;
-      document.getElementById('fInputDir').value = inv.dir;
-      document.getElementById('fInputRif').value = inv.rif;
-      document.getElementById('fInputPhone').value = inv.phone;
-      document.getElementById('fManualCop').value = inv.totalCop;
-      document.getElementById('fManualBs').value = inv.totalBs;
-      
-      cart = inv.cart;
-      showTab('pos');
-      renderCart();
-    }
-
-    function renderDailySales() {
-      const selectedDate = document.getElementById('salesDateFilter').value;
-      const tbody = document.getElementById('salesTable');
-      tbody.innerHTML = '';
-
-      const filtered = invoicesHistory.filter(i => i.emision === selectedDate);
-      let totalUsd = 0, totalCop = 0, totalBs = 0;
-
-      filtered.forEach(inv => {
-        totalUsd += inv.totalUsd;
-        totalCop += inv.totalCop;
-        totalBs += inv.totalBs;
-
-        let itemsSummary = inv.cart.map(i => `• ${i.desc} (${i.qty} x $${i.price.toFixed(2)} USD)`).join('<br>');
-
-        tbody.innerHTML += `
-          <tr>
-            <td><strong>${inv.num}</strong></td>
-            <td>${itemsSummary}</td>
-            <td><strong>$${inv.totalUsd.toFixed(2)} USD</strong></td>
-          </tr>
-        `;
-      });
-
-      document.getElementById('salesReportTitle').innerText = `Ventas del Día (${selectedDate})`;
-      document.getElementById('salesCount').innerText = filtered.length;
-      document.getElementById('salesTotalUsd').innerText = '$' + totalUsd.toFixed(2) + ' USD';
-      document.getElementById('salesTotalAlt').innerText = `$${totalCop.toLocaleString()} COP / ${totalBs.toFixed(2)} Bs`;
-    }
-
-    function renderAll() {
-      document.getElementById('dash-count').innerText = inventory.length;
-      
-      const totalStock = inventory.reduce((acc, i) => acc + (i.currentStock || 0), 0);
-      document.getElementById('dash-stock').innerText = totalStock;
-
-      const totalInvVal = inventory.reduce((acc, i) => acc + (i.p1 * (i.currentStock || 0)), 0);
-      document.getElementById('dash-val').innerText = '$' + totalInvVal.toFixed(2);
-
-      filterPosProducts();
-      renderInventoryTable();
-      renderCart();
-    }
-
-    function saveToStorage() {
-      localStorage.setItem('tj_inv_v7', JSON.stringify(inventory));
-      localStorage.setItem('tj_invoices_v7', JSON.stringify(invoicesHistory));
-      localStorage.setItem('tj_nota_num_v7', nextNotaNumber);
-      localStorage.setItem('tj_prod_num_v7', nextProdNum);
-    }
-
-    function exportData() {
-      const data = { inventory, invoicesHistory, nextNotaNumber, nextProdNum, blockedIPs: getBlockedIPs() };
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `Respaldo_TioJulian_${new Date().toISOString().split('T')[0]}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function importData() {
-      document.getElementById('importFile').click();
-    }
-
-    function processImport(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          const imported = JSON.parse(evt.target.result);
-          if (imported.inventory && imported.invoicesHistory) {
-            inventory = imported.inventory;
-            invoicesHistory = imported.invoicesHistory;
-            nextNotaNumber = imported.nextNotaNumber || 1;
-            nextProdNum = imported.nextProdNum || 1;
-            if (imported.blockedIPs) saveBlockedIPs(imported.blockedIPs);
-
-            saveToStorage();
-            renderAll();
-            alert("¡Datos cargados e importados exitosamente!");
-          } else {
-            alert("El archivo no tiene un formato válido.");
-          }
-        } catch(err) {
-          alert("Error al procesar el archivo.");
+            listaIps.forEach((ip, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${ip}</strong></td>
+                        <td><span class="badge-blocked">Conexión Cortada (Sin Internet)</span></td>
+                        <td class="text-center">
+                            <button class="btn btn-success" onclick="desbloquearIP(${index})">Desbloquear IP</button>
+                        </td>
+                    </tr>
+                `;
+            });
         }
-      };
-      reader.readAsText(file);
-    }
 
-    checkPublicRoute();
-  </script>
+        function bloquearIP() {
+            const input = document.getElementById('input-ip');
+            const ip = input.value.trim();
+
+            if (!ip) {
+                alert('Ingresa una IP válida.');
+                return;
+            }
+
+            if (listaIps.includes(ip)) {
+                alert('Esta IP ya está bloqueada.');
+                return;
+            }
+
+            listaIps.push(ip);
+            localStorage.setItem('ips_bloqueadas', JSON.stringify(listaIps));
+            input.value = '';
+            renderizarIps();
+            alert(`IP ${ip} bloqueada.`);
+        }
+
+        function desbloquearIP(index) {
+            const ipEliminada = listaIps[index];
+            listaIps.splice(index, 1);
+            localStorage.setItem('ips_bloqueadas', JSON.stringify(listaIps));
+            renderizarIps();
+            alert(`IP ${ipEliminada} desbloqueada.`);
+        }
+
+        renderizarIps();
+    </script>
 </body>
 </html>
