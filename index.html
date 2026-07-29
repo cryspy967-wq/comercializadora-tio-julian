@@ -187,6 +187,9 @@
       @page { size: portrait; margin: 4mm 5mm; }
       .doc-table td { padding: 0.5px 3px !important; font-size: 0.6rem !important; }
       .doc-table th { padding: 1.5px 3px !important; font-size: 0.62rem !important; }
+      
+      /* MODIFICACIÓN: IMPRESIÓN DOBLE */
+      .print-double { page-break-after: always; }
     }
   </style>
 </head>
@@ -294,6 +297,7 @@
         <div class="card">
           <h3 style="margin-bottom:15px; font-size:0.95rem;">Registrar Nuevo Producto</h3>
           
+          <!-- MODIFICACIÓN: SELECTORES CATEGORÍA/PROVEEDOR -->
           <div style="display:grid; grid-template-columns: 1fr 2fr 1fr 1fr 1fr; gap:10px; align-items:end; margin-bottom:12px;">
             <div>
               <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CÓDIGO (AUTO)</label>
@@ -303,13 +307,14 @@
               <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">DESCRIPCIÓN DEL PRODUCTO</label>
               <input type="text" id="pDesc" class="input-sys" placeholder="Nombre del artículo">
             </div>
+            <!-- Selectores inyectados -->
             <div>
-              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 1 DETAL ($ USD)</label>
-              <input type="number" id="pPrice1" class="input-sys" placeholder="0.00" step="0.01">
+                <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CATEGORÍA</label>
+                <select id="selCat" class="input-sys"></select>
             </div>
             <div>
-              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 2 MAYOR ($ USD)</label>
-              <input type="number" id="pPrice2" class="input-sys" placeholder="0.00" step="0.01">
+                <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PROVEEDOR</label>
+                <select id="selSupp" class="input-sys"></select>
             </div>
             <div>
               <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">STOCK INICIAL</label>
@@ -353,6 +358,14 @@
 
         <div class="card no-print">
           <h3 style="font-size:0.9rem; margin-bottom:10px;">Encabezado y Datos del Cliente</h3>
+          
+          <!-- MODIFICACIÓN: DATALIST PARA BUSCAR CLIENTES -->
+          <div style="margin-bottom:15px;">
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">BUSCAR CLIENTE</label>
+              <input type="text" id="fSearchClient" class="input-sys" list="list-clients-datalist" placeholder="Escribe para buscar cliente..." oninput="fillClientData()">
+              <datalist id="list-clients-datalist"></datalist>
+          </div>
+
           <div class="grid-3" style="margin-bottom:12px;">
             <div>
               <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">Nº NOTA DE ENTREGA (AUTO)</label>
@@ -402,12 +415,12 @@
           </div>
         </div>
 
-        <!-- IMPRESIÓN NOTA DE ENTREGA (LIMPIA SIN IVA) -->
-        <div class="print-sheet">
-          <div class="invoice-preview">
+        <!-- IMPRESIÓN NOTA DE ENTREGA (LIMPIA SIN IVA) - DOBLE -->
+        <div class="print-sheet" id="print-area">
+          <div class="invoice-preview print-double">
             <div class="doc-header">
               <div class="doc-title">Comercializadora Tío Julián</div>
-              <div class="doc-sub">"De la mano de sus clientes" — NOTA DE ENTREGA</div>
+              <div class="doc-sub">"De la mano de sus clientes" — ORIGINAL</div>
               <div class="doc-fiscal">RIF: 164227940 &nbsp;|&nbsp; DIR: Pirineos 1</div>
               <div style="margin-top:2px; font-weight:800; font-size:0.7rem;">
                 NOTA Nº: <span class="lbl-fnum">0000001</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
@@ -450,6 +463,28 @@
                 <div style="font-size:0.68rem; margin-top:2px;">EQUIV: $<span class="lbl-total-cop">0.00</span> COP &nbsp;|&nbsp; <span class="lbl-total-bs">0.00</span> Bs.</div>
               </div>
             </div>
+          </div>
+          
+          <!-- COPIA -->
+          <div class="invoice-preview">
+             <div class="doc-header">
+              <div class="doc-title">Comercializadora Tío Julián</div>
+              <div class="doc-sub">"De la mano de sus clientes" — COPIA</div>
+              <div class="doc-fiscal">RIF: 164227940 &nbsp;|&nbsp; DIR: Pirineos 1</div>
+              <div style="margin-top:2px; font-weight:800; font-size:0.7rem;">
+                NOTA Nº: <span class="lbl-fnum">0000001</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
+                EMISIÓN: <span class="lbl-femision">--/--/----</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
+                VENC: <span class="lbl-fvenc">--/--/----</span>
+              </div>
+            </div>
+            <div class="doc-client">
+              <div>CLIENTE: <span class="lbl-fname">---</span> &nbsp;&nbsp;|&nbsp;&nbsp; RIF/CI: <span class="lbl-frif">---</span></div>
+              <div>DIRECCIÓN: <span class="lbl-fdir">---</span> &nbsp;&nbsp;|&nbsp;&nbsp; TEL: <span class="lbl-fphone">---</span></div>
+            </div>
+            <table class="doc-table">
+              <tbody class="cart-table-body"></tbody>
+            </table>
+            <div style="text-align:right;">TOTAL A PAGAR: $<span class="lbl-total-usd">0.00</span> USD</div>
           </div>
         </div>
 
@@ -817,8 +852,29 @@
 
       updateAutoProdCode();
       autoCalculateExpiry();
+      
+      // Cargar selectores
+      let cOpts = window.catsData.map(c => `<option value="${c}">${c}</option>`).join('');
+      document.getElementById('selCat').innerHTML = cOpts;
+      let sOpts = window.suppData.map(s => `<option value="${s}">${s}</option>`).join('');
+      document.getElementById('selSupp').innerHTML = sOpts;
+      
+      // Datalist clientes
+      document.getElementById('list-clients-datalist').innerHTML = window.clientsData.map(c => `<option value="${c.n}">`).join('');
     }
     window.initDates = initDates;
+
+    function fillClientData() {
+        let val = document.getElementById('fSearchClient').value;
+        let c = window.clientsData.find(x => x.n === val);
+        if(c) {
+            document.getElementById('fInputName').value = c.n;
+            document.getElementById('fInputRif').value = c.r;
+            document.getElementById('fInputDir').value = c.d;
+            document.getElementById('fInputPhone').value = c.t;
+            updateFactura();
+        }
+    }
 
     function updateAutoProdCode() {
       document.getElementById('pCode').value = "PROD-" + String(window.nextProdNum).padStart(4, '0');
@@ -883,10 +939,12 @@
       const p1 = parseFloat(document.getElementById('pPrice1').value);
       const p2 = parseFloat(document.getElementById('pPrice2').value) || p1;
       const stock = parseInt(document.getElementById('pStock').value) || 0;
+      const cat = document.getElementById('selCat').value;
+      const sup = document.getElementById('selSupp').value;
 
       if(!desc || isNaN(p1)) return alert("Escriba la descripción y el Precio 1.");
 
-      window.inventory.push({ code, desc, p1, p2, initialStock: stock, currentStock: stock });
+      window.inventory.push({ code, desc, p1, p2, initialStock: stock, currentStock: stock, cat, sup });
       window.nextProdNum++;
       
       saveToStorage();
@@ -1312,14 +1370,15 @@
         document.getElementById('in-client-tel').value='';
         saveToStorage(); 
         renderC(); 
+        initDates();
       } 
     }
-    function saveCat(){ let v = document.getElementById('in-cat').value; if(v){ window.catsData.push(v); document.getElementById('in-cat').value=''; saveToStorage(); renderCat(); } }
-    function saveSupp(){ let v = document.getElementById('in-supp').value; if(v){ window.suppData.push(v); document.getElementById('in-supp').value=''; saveToStorage(); renderSupp(); } }
+    function saveCat(){ let v = document.getElementById('in-cat').value; if(v){ window.catsData.push(v); document.getElementById('in-cat').value=''; saveToStorage(); renderCat(); initDates(); } }
+    function saveSupp(){ let v = document.getElementById('in-supp').value; if(v){ window.suppData.push(v); document.getElementById('in-supp').value=''; saveToStorage(); renderSupp(); initDates(); } }
 
     function renderC() { document.getElementById('list-clients').innerHTML = window.clientsData.map(i => `<tr><td>${i.n}</td><td>${i.r}</td><td>${i.d}</td><td>${i.t}</td></tr>`).join(''); }
     function renderCat() { document.getElementById('list-cats').innerHTML = window.catsData.map(i => `<tr><td>${i}</td></tr>`).join(''); }
-    function renderSupp() { document.getElementById('list-supp').innerHTML = window.suppData.map(i => `<tr><td>${i}</td></tr>`).join(''); }
+    function renderSupp() { document.getElementById('list-cats').innerHTML = window.suppData.map(i => `<tr><td>${i}</td></tr>`).join(''); }
 
     checkPublicRoute();
   </script>
