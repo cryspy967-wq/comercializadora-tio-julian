@@ -42,11 +42,6 @@
             window.fiscalInvoicesHistory = data.fiscalInvoicesHistory;
             localStorage.setItem('tj_fiscal_invoices_v7', JSON.stringify(data.fiscalInvoicesHistory));
           }
-          // MODIFICACIONES: Carga de nuevos datos
-          if (data.clients) { window.clients = data.clients; localStorage.setItem('tj_clients_v7', JSON.stringify(data.clients)); }
-          if (data.categories) { window.categories = data.categories; localStorage.setItem('tj_categories_v7', JSON.stringify(data.categories)); }
-          if (data.suppliers) { window.suppliers = data.suppliers; localStorage.setItem('tj_suppliers_v7', JSON.stringify(data.suppliers)); }
-          
           if (data.nextNotaNumber) {
             window.nextNotaNumber = data.nextNotaNumber;
             localStorage.setItem('tj_nota_num_v7', data.nextNotaNumber);
@@ -82,9 +77,6 @@
           inventory: window.inventory || [],
           invoicesHistory: window.invoicesHistory || [],
           fiscalInvoicesHistory: window.fiscalInvoicesHistory || [],
-          clients: window.clients || [], // NUEVO
-          categories: window.categories || [], // NUEVO
-          suppliers: window.suppliers || [], // NUEVO
           nextNotaNumber: window.nextNotaNumber || 1,
           nextFiscalNumber: window.nextFiscalNumber || 1,
           nextProdNum: window.nextProdNum || 1,
@@ -257,12 +249,11 @@
           <li><a href="#" id="m-fiscal" onclick="showTab('fiscal')">🧾 Facturas Fiscales (SENIAT)</a></li>
           <li><a href="#" id="m-hist" onclick="showTab('hist')">📂 Notas Guardadas</a></li>
           <li><a href="#" id="m-sales" onclick="showTab('sales')">📈 Ventas Diarias</a></li>
-          <!-- NUEVOS LINKS -->
+          <li><a href="#" id="m-sec" onclick="showTab('sec')">🛡️ Seguridad / IPs</a></li>
+          <!-- Nuevos módulos inyectados -->
           <li><a href="#" id="m-clients" onclick="showTab('clients')">👥 Clientes</a></li>
           <li><a href="#" id="m-cats" onclick="showTab('cats')">🏷️ Categorías</a></li>
           <li><a href="#" id="m-supp" onclick="showTab('supp')">🚚 Proveedores</a></li>
-          <li><a href="#" id="m-conf" onclick="showTab('conf')">⚙️ Configuración</a></li>
-          <li><a href="#" id="m-sec" onclick="showTab('sec')">🛡️ Seguridad / IPs</a></li>
         </ul>
       </nav>
 
@@ -587,12 +578,6 @@
         </div>
       </div>
 
-      <!-- MÓDULOS NUEVOS (SCALFODING) -->
-      <div id="sec-clients" style="display:none;"><div class="card"><h1>Módulo de Clientes</h1><p>En desarrollo...</p></div></div>
-      <div id="sec-cats" style="display:none;"><div class="card"><h1>Módulo de Categorías</h1><p>En desarrollo...</p></div></div>
-      <div id="sec-supp" style="display:none;"><div class="card"><h1>Módulo de Proveedores</h1><p>En desarrollo...</p></div></div>
-      <div id="sec-conf" style="display:none;"><div class="card"><h1>Configuración</h1><p>En desarrollo...</p></div></div>
-
       <!-- SEGURIDAD -->
       <div id="sec-sec" style="display:none;">
         <h1 style="margin-bottom:10px; color:var(--danger);">🛡️ Escudo de Seguridad & Registro de Bloqueos</h1>
@@ -618,6 +603,36 @@
             <tbody id="securityTable"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- SECCIÓN CLIENTES -->
+      <div id="sec-clients" style="display:none;">
+        <h1 style="margin-bottom:10px;">👥 Gestión de Clientes</h1>
+        <div class="card">
+          <input type="text" id="in-client" class="input-sys" placeholder="Nombre del Cliente">
+          <button onclick="saveClient()" class="btn-primary" style="margin-top:10px;">Guardar Cliente</button>
+        </div>
+        <div class="card"><table class="table-sys"><tbody id="list-clients"></tbody></table></div>
+      </div>
+
+      <!-- SECCIÓN CATEGORÍAS -->
+      <div id="sec-cats" style="display:none;">
+        <h1 style="margin-bottom:10px;">🏷️ Categorías</h1>
+        <div class="card">
+          <input type="text" id="in-cat" class="input-sys" placeholder="Nombre de Categoría">
+          <button onclick="saveCat()" class="btn-primary" style="margin-top:10px;">Guardar Categoría</button>
+        </div>
+        <div class="card"><table class="table-sys"><tbody id="list-cats"></tbody></table></div>
+      </div>
+
+      <!-- SECCIÓN PROVEEDORES -->
+      <div id="sec-supp" style="display:none;">
+        <h1 style="margin-bottom:10px;">🚚 Proveedores</h1>
+        <div class="card">
+          <input type="text" id="in-supp" class="input-sys" placeholder="Nombre del Proveedor">
+          <button onclick="saveSupp()" class="btn-primary" style="margin-top:10px;">Guardar Proveedor</button>
+        </div>
+        <div class="card"><table class="table-sys"><tbody id="list-supp"></tbody></table></div>
       </div>
 
     </main>
@@ -757,14 +772,14 @@
     window.inventory = JSON.parse(localStorage.getItem('tj_inv_v7')) || [];
     window.invoicesHistory = JSON.parse(localStorage.getItem('tj_invoices_v7')) || [];
     window.fiscalInvoicesHistory = JSON.parse(localStorage.getItem('tj_fiscal_invoices_v7')) || [];
-    // NUEVO STORAGE
-    window.clients = JSON.parse(localStorage.getItem('tj_clients_v7')) || [];
-    window.categories = JSON.parse(localStorage.getItem('tj_categories_v7')) || [];
-    window.suppliers = JSON.parse(localStorage.getItem('tj_suppliers_v7')) || [];
-
     window.nextNotaNumber = parseInt(localStorage.getItem('tj_nota_num_v7')) || 1;
     window.nextFiscalNumber = parseInt(localStorage.getItem('tj_fiscal_num_v7')) || 1;
     window.nextProdNum = parseInt(localStorage.getItem('tj_prod_num_v7')) || (window.inventory.length + 1);
+
+    // Nuevos datos locales
+    window.clientsData = JSON.parse(localStorage.getItem('tj_clients') || '[]');
+    window.catsData = JSON.parse(localStorage.getItem('tj_cats') || '[]');
+    window.suppData = JSON.parse(localStorage.getItem('tj_supp') || '[]');
 
     let cart = [];
     let fiscalCart = [];
@@ -833,12 +848,9 @@
       document.getElementById('sec-hist').style.display = tab === 'hist' ? 'block' : 'none';
       document.getElementById('sec-sales').style.display = tab === 'sales' ? 'block' : 'none';
       document.getElementById('sec-sec').style.display = tab === 'sec' ? 'block' : 'none';
-      
-      // MOSTRAR NUEVOS
       document.getElementById('sec-clients').style.display = tab === 'clients' ? 'block' : 'none';
       document.getElementById('sec-cats').style.display = tab === 'cats' ? 'block' : 'none';
       document.getElementById('sec-supp').style.display = tab === 'supp' ? 'block' : 'none';
-      document.getElementById('sec-conf').style.display = tab === 'conf' ? 'block' : 'none';
 
       document.getElementById('m-dash').className = tab === 'dash' ? 'active' : '';
       document.getElementById('m-inv').className = tab === 'inv' ? 'active' : '';
@@ -847,11 +859,9 @@
       document.getElementById('m-hist').className = tab === 'hist' ? 'active' : '';
       document.getElementById('m-sales').className = tab === 'sales' ? 'active' : '';
       document.getElementById('m-sec').className = tab === 'sec' ? 'active' : '';
-      // ACTIVAR NUEVOS
       document.getElementById('m-clients').className = tab === 'clients' ? 'active' : '';
       document.getElementById('m-cats').className = tab === 'cats' ? 'active' : '';
       document.getElementById('m-supp').className = tab === 'supp' ? 'active' : '';
-      document.getElementById('m-conf').className = tab === 'conf' ? 'active' : '';
 
       if (tab === 'sales') renderDailySales();
       if (tab === 'hist') renderHistoryTable();
@@ -1202,6 +1212,9 @@
       filterPosProducts();
       renderInventoryTable();
       renderCart();
+      renderC();
+      renderCat();
+      renderSupp();
     }
     window.renderAll = renderAll;
 
@@ -1209,15 +1222,12 @@
       localStorage.setItem('tj_inv_v7', JSON.stringify(window.inventory));
       localStorage.setItem('tj_invoices_v7', JSON.stringify(window.invoicesHistory));
       localStorage.setItem('tj_fiscal_invoices_v7', JSON.stringify(window.fiscalInvoicesHistory));
-      
-      // NUEVO STORAGE
-      localStorage.setItem('tj_clients_v7', JSON.stringify(window.clients));
-      localStorage.setItem('tj_categories_v7', JSON.stringify(window.categories));
-      localStorage.setItem('tj_suppliers_v7', JSON.stringify(window.suppliers));
-
       localStorage.setItem('tj_nota_num_v7', window.nextNotaNumber);
       localStorage.setItem('tj_fiscal_num_v7', window.nextFiscalNumber);
       localStorage.setItem('tj_prod_num_v7', window.nextProdNum);
+      localStorage.setItem('tj_clients', JSON.stringify(window.clientsData));
+      localStorage.setItem('tj_cats', JSON.stringify(window.catsData));
+      localStorage.setItem('tj_supp', JSON.stringify(window.suppData));
 
       if (window.saveToFirebaseCloud) window.saveToFirebaseCloud();
     }
@@ -1227,13 +1237,13 @@
         inventory: window.inventory, 
         invoicesHistory: window.invoicesHistory, 
         fiscalInvoicesHistory: window.fiscalInvoicesHistory,
-        clients: window.clients, // NUEVO
-        categories: window.categories, // NUEVO
-        suppliers: window.suppliers, // NUEVO
         nextNotaNumber: window.nextNotaNumber, 
         nextFiscalNumber: window.nextFiscalNumber,
         nextProdNum: window.nextProdNum, 
-        blockedIPs: getBlockedIPs() 
+        blockedIPs: getBlockedIPs(),
+        clients: window.clientsData,
+        cats: window.catsData,
+        supp: window.suppData
       };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
       const downloadAnchor = document.createElement('a');
@@ -1258,15 +1268,13 @@
             window.inventory = imported.inventory;
             window.invoicesHistory = imported.invoicesHistory;
             window.fiscalInvoicesHistory = imported.fiscalInvoicesHistory || [];
-            // NUEVO
-            window.clients = imported.clients || [];
-            window.categories = imported.categories || [];
-            window.suppliers = imported.suppliers || [];
-            
             window.nextNotaNumber = imported.nextNotaNumber || 1;
             window.nextFiscalNumber = imported.nextFiscalNumber || 1;
             window.nextProdNum = imported.nextProdNum || 1;
             if (imported.blockedIPs) saveBlockedIPs(imported.blockedIPs);
+            window.clientsData = imported.clients || [];
+            window.catsData = imported.cats || [];
+            window.suppData = imported.supp || [];
 
             saveToStorage();
             renderAll();
@@ -1280,6 +1288,15 @@
       };
       reader.readAsText(file);
     }
+
+    // Funciones nuevas para módulos
+    function saveClient(){ let v = document.getElementById('in-client').value; if(v){ window.clientsData.push(v); document.getElementById('in-client').value=''; saveToStorage(); renderC(); } }
+    function saveCat(){ let v = document.getElementById('in-cat').value; if(v){ window.catsData.push(v); document.getElementById('in-cat').value=''; saveToStorage(); renderCat(); } }
+    function saveSupp(){ let v = document.getElementById('in-supp').value; if(v){ window.suppData.push(v); document.getElementById('in-supp').value=''; saveToStorage(); renderSupp(); } }
+
+    function renderC() { document.getElementById('list-clients').innerHTML = window.clientsData.map(i => `<tr><td>${i}</td></tr>`).join(''); }
+    function renderCat() { document.getElementById('list-cats').innerHTML = window.catsData.map(i => `<tr><td>${i}</td></tr>`).join(''); }
+    function renderSupp() { document.getElementById('list-supp').innerHTML = window.suppData.map(i => `<tr><td>${i}</td></tr>`).join(''); }
 
     checkPublicRoute();
   </script>
