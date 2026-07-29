@@ -30,19 +30,38 @@
       if (snapshot.exists()) {
         if (!isLocalUpdate) {
           const data = snapshot.data();
-          if (data.inventory) { window.inventory = data.inventory; localStorage.setItem('tj_inv_v7', JSON.stringify(data.inventory)); }
-          if (data.invoicesHistory) { window.invoicesHistory = data.invoicesHistory; localStorage.setItem('tj_invoices_v7', JSON.stringify(data.invoicesHistory)); }
-          if (data.fiscalInvoicesHistory) { window.fiscalInvoicesHistory = data.fiscalInvoicesHistory; localStorage.setItem('tj_fiscal_invoices_v7', JSON.stringify(data.fiscalInvoicesHistory)); }
-          
-          // NUEVOS DATOS INTEGRADOS
-          if (data.categories) { window.categories = data.categories; localStorage.setItem('tj_cats_v7', JSON.stringify(data.categories)); }
-          if (data.suppliers) { window.suppliers = data.suppliers; localStorage.setItem('tj_supps_v7', JSON.stringify(data.suppliers)); }
+          if (data.inventory) {
+            window.inventory = data.inventory;
+            localStorage.setItem('tj_inv_v7', JSON.stringify(data.inventory));
+          }
+          if (data.invoicesHistory) {
+            window.invoicesHistory = data.invoicesHistory;
+            localStorage.setItem('tj_invoices_v7', JSON.stringify(data.invoicesHistory));
+          }
+          if (data.fiscalInvoicesHistory) {
+            window.fiscalInvoicesHistory = data.fiscalInvoicesHistory;
+            localStorage.setItem('tj_fiscal_invoices_v7', JSON.stringify(data.fiscalInvoicesHistory));
+          }
+          // MODIFICACIONES: Carga de nuevos datos
           if (data.clients) { window.clients = data.clients; localStorage.setItem('tj_clients_v7', JSON.stringify(data.clients)); }
-
-          if (data.nextNotaNumber) { window.nextNotaNumber = data.nextNotaNumber; localStorage.setItem('tj_nota_num_v7', data.nextNotaNumber); }
-          if (data.nextFiscalNumber) { window.nextFiscalNumber = data.nextFiscalNumber; localStorage.setItem('tj_fiscal_num_v7', data.nextFiscalNumber); }
-          if (data.nextProdNum) { window.nextProdNum = data.nextProdNum; localStorage.setItem('tj_prod_num_v7', data.nextProdNum); }
-          if (data.blockedIPs && window.saveBlockedIPs) { window.saveBlockedIPs(data.blockedIPs); }
+          if (data.categories) { window.categories = data.categories; localStorage.setItem('tj_categories_v7', JSON.stringify(data.categories)); }
+          if (data.suppliers) { window.suppliers = data.suppliers; localStorage.setItem('tj_suppliers_v7', JSON.stringify(data.suppliers)); }
+          
+          if (data.nextNotaNumber) {
+            window.nextNotaNumber = data.nextNotaNumber;
+            localStorage.setItem('tj_nota_num_v7', data.nextNotaNumber);
+          }
+          if (data.nextFiscalNumber) {
+            window.nextFiscalNumber = data.nextFiscalNumber;
+            localStorage.setItem('tj_fiscal_num_v7', data.nextFiscalNumber);
+          }
+          if (data.nextProdNum) {
+            window.nextProdNum = data.nextProdNum;
+            localStorage.setItem('tj_prod_num_v7', data.nextProdNum);
+          }
+          if (data.blockedIPs && window.saveBlockedIPs) {
+            window.saveBlockedIPs(data.blockedIPs);
+          }
           
           if (window.renderAll) window.renderAll();
           if (window.initDates) window.initDates();
@@ -63,10 +82,9 @@
           inventory: window.inventory || [],
           invoicesHistory: window.invoicesHistory || [],
           fiscalInvoicesHistory: window.fiscalInvoicesHistory || [],
-          // NUEVO: Payload sincronizado
-          categories: window.categories || ['General'],
-          suppliers: window.suppliers || ['Sin Proveedor'],
-          clients: window.clients || [],
+          clients: window.clients || [], // NUEVO
+          categories: window.categories || [], // NUEVO
+          suppliers: window.suppliers || [], // NUEVO
           nextNotaNumber: window.nextNotaNumber || 1,
           nextFiscalNumber: window.nextFiscalNumber || 1,
           nextProdNum: window.nextProdNum || 1,
@@ -98,18 +116,37 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-main); color: var(--text); font-size: 0.88rem; min-height: 100vh; display: flex; overflow: hidden; }
 
-    #public-qr-screen { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f8fafc; z-index: 10000; padding: 20px; flex-direction: column; align-items: center; justify-content: center; }
+    /* PÁGINA PÚBLICA DE VERIFICACIÓN QR */
+    #public-qr-screen {
+      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #f8fafc; z-index: 10000; padding: 20px; flex-direction: column; align-items: center; justify-content: center;
+    }
     .public-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 30px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; }
 
-    #login-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); display: flex; justify-content: center; align-items: center; z-index: 9999; }
-    .login-card { background: #ffffff; border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-    .blocked-banner { display: none; background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; font-size: 0.85rem; line-height: 1.4; }
+    /* LOGIN & BANNER DE BLOQUEO */
+    #login-screen {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      display: flex; justify-content: center; align-items: center; z-index: 9999;
+    }
+    .login-card {
+      background: #ffffff; border-radius: 16px; padding: 40px; width: 100%; max-width: 400px;
+      text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+    .blocked-banner {
+      display: none; background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b;
+      padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; font-size: 0.85rem; line-height: 1.4;
+    }
 
-    .input-sys { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; outline: none; margin-top: 4px; }
+    .input-sys {
+      width: 100%; background: var(--bg-input); border: 1px solid var(--border);
+      color: var(--text); padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; outline: none; margin-top: 4px;
+    }
     .input-sys:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
     .btn-primary { width: 100%; background: var(--accent); color: #fff; border: none; padding: 11px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .btn-primary:hover { background: var(--accent-hover); }
 
+    /* LAYOUT APLICACIÓN */
     #app-container { display: none; width: 100%; height: 100vh; flex-direction: row; }
     aside { width: 250px; background: #ffffff; border-right: 1px solid var(--border); padding: 25px 20px; display: flex; flex-direction: column; gap: 20px; }
     .brand { font-size: 1.15rem; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 10px; }
@@ -123,22 +160,31 @@
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
     .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
 
+    /* TABLAS DE PANTALLA */
     .table-sys { width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px; }
     .table-sys th { background: #f1f5f9; padding: 10px; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; border-bottom: 2px solid var(--border); }
     .table-sys td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
 
+    /* FACTURA / NOTA EN PAPEL VERTICAL (PORTRAIT) */
     .print-sheet { display: flex; flex-direction: column; gap: 10px; }
-    .invoice-preview { background: #fff; color: #000; padding: 15px 20px; max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif; border: 1px solid #000; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; }
+    .invoice-preview {
+      background: #fff; color: #000; padding: 15px 20px; max-width: 800px; margin: 0 auto;
+      font-family: Arial, sans-serif; border: 1px solid #000; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%;
+    }
     .doc-header { text-align: center; margin-bottom: 4px; }
     .doc-title { font-weight: 900; font-size: 1rem; text-transform: uppercase; color: #000; }
     .doc-sub { font-size: 0.7rem; font-weight: 600; font-style: italic; }
     .doc-fiscal { font-size: 0.65rem; margin-top: 1px; }
+
     .doc-client { border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 0; margin: 4px 0; font-size: 0.7rem; font-weight: 700; line-height: 1.2; text-transform: uppercase; }
+    
     .doc-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; margin-bottom: 6px; }
     .doc-table th { border-bottom: 1px solid #000; text-align: left; padding: 2px 4px; background: #f1f5f9; }
     .doc-table td { padding: 1px 4px; border-bottom: 1px solid #e2e8f0; }
+
     .doc-totals { text-align: right; font-size: 0.7rem; font-weight: 800; line-height: 1.2; border-top: 1px solid #000; padding-top: 2px; }
 
+    /* REGLA DE IMPRESIÓN */
     @media print {
       body { background: #fff !important; color: #000 !important; }
       #login-screen, aside, .no-print, #public-qr-screen { display: none !important; }
@@ -154,12 +200,13 @@
 </head>
 <body>
 
-  <!-- (Mantenemos toda tu lógica original de QR y Login) -->
+  <!-- PANTALLA PÚBLICA DE VERIFICACIÓN QR -->
   <div id="public-qr-screen">
     <div class="public-card">
       <h2 style="color:var(--accent); margin-bottom:5px;">Comercializadora Tío Julián</h2>
-      <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:15px;">Módulo de Verificación Digital</p>
+      <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:15px;">Módulo de Verificación Digital de Documentos</p>
       <hr style="margin-bottom:15px; border:none; border-top:1px solid var(--border);">
+      
       <div id="qr-result-box" style="text-align:left; line-height:1.6; font-size:0.9rem;">
         <p><strong>Estado:</strong> <span style="color:var(--success); font-weight:bold;">✔ Documento Válido</span></p>
         <p><strong>Nº Documento:</strong> <span id="pub-num">---</span></p>
@@ -169,141 +216,1072 @@
     </div>
   </div>
 
+  <!-- INICIO DE SESIÓN SEGURO -->
   <div id="login-screen">
     <div class="login-card">
       <h2 style="margin-bottom: 5px; color: var(--accent);">TÍO JULIÁN</h2>
+      <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px;">Acceso Restringido al Sistema</p>
+
       <div id="ipBlockedMessage" class="blocked-banner">
-        🚨 DISPOSITIVO / IP BLOQUEADA
-        <button onclick="forceUnblockThisDevice()" style="margin-top:12px; background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; width:100%;">🔓 Liberar Ahora</button>
+        🚨 DISPOSITIVO / IP BLOQUEADA<br>
+        Se han detectado intentos fallidos desde este equipo.
+        <button onclick="forceUnblockThisDevice()" style="margin-top:12px; background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:bold; width:100%;">🔓 Liberar este Dispositivo Ahora</button>
       </div>
+      
       <form id="loginForm" onsubmit="login(event)" autocomplete="off">
-        <input type="text" id="userInput" class="input-sys" placeholder="Usuario" required>
-        <input type="password" id="passInput" class="input-sys" placeholder="Contraseña" required>
-        <button type="submit" class="btn-primary" style="margin-top:15px;">Ingresar</button>
+        <div style="text-align:left; margin-bottom:15px;">
+          <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">USUARIO</label>
+          <input type="text" id="userInput" class="input-sys" placeholder="Usuario" required>
+        </div>
+        <div style="text-align:left; margin-bottom:15px;">
+          <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">CONTRASEÑA</label>
+          <input type="password" id="passInput" class="input-sys" placeholder="••••••••" required>
+        </div>
+
+        <div id="attemptCounter" style="font-size:0.75rem; color:var(--danger); margin-bottom:15px; font-weight:bold; display:none;"></div>
+
+        <button type="submit" id="btnLoginSubmit" class="btn-primary">Ingresar al Sistema</button>
       </form>
     </div>
   </div>
 
+  <!-- APLICACIÓN PRINCIPAL -->
   <div id="app-container">
     <aside>
       <div class="brand">📦 <span>TÍO JULIÁN</span></div>
       <nav>
         <ul>
-          <li><a href="#" id="m-dash" class="active" onclick="showTab('dash')">📊 Panel</a></li>
+          <li><a href="#" id="m-dash" class="active" onclick="showTab('dash')">📊 Panel General</a></li>
           <li><a href="#" id="m-inv" onclick="showTab('inv')">📋 Inventario</a></li>
-          <li><a href="#" id="m-clients" onclick="showTab('clients')">👥 Clientes</a></li> <!-- NUEVO -->
           <li><a href="#" id="m-pos" onclick="showTab('pos')">📄 Nota de Entrega</a></li>
-          <li><a href="#" id="m-fiscal" onclick="showTab('fiscal')">🧾 Facturas Fiscales</a></li>
+          <li><a href="#" id="m-fiscal" onclick="showTab('fiscal')">🧾 Facturas Fiscales (SENIAT)</a></li>
           <li><a href="#" id="m-hist" onclick="showTab('hist')">📂 Notas Guardadas</a></li>
-          <li><a href="#" id="m-sales" onclick="showTab('sales')">📈 Ventas</a></li>
-          <li><a href="#" id="m-config" onclick="showTab('config')">⚙️ Configuración</a></li> <!-- NUEVO -->
-          <li><a href="#" id="m-sec" onclick="showTab('sec')">🛡️ Seguridad</a></li>
+          <li><a href="#" id="m-sales" onclick="showTab('sales')">📈 Ventas Diarias</a></li>
+          <!-- NUEVOS LINKS -->
+          <li><a href="#" id="m-clients" onclick="showTab('clients')">👥 Clientes</a></li>
+          <li><a href="#" id="m-cats" onclick="showTab('cats')">🏷️ Categorías</a></li>
+          <li><a href="#" id="m-supp" onclick="showTab('supp')">🚚 Proveedores</a></li>
+          <li><a href="#" id="m-conf" onclick="showTab('conf')">⚙️ Configuración</a></li>
+          <li><a href="#" id="m-sec" onclick="showTab('sec')">🛡️ Seguridad / IPs</a></li>
         </ul>
       </nav>
-      <!-- ... Botones de exportar ... -->
+
+      <div style="margin-top:auto; display:flex; flex-direction:column; gap:8px;">
+        <button onclick="exportData()" class="btn-primary" style="background:#475569; font-size:0.75rem; padding:8px;">💾 Resp. Copia de Datos</button>
+        <button onclick="importData()" class="btn-primary" style="background:#64748b; font-size:0.75rem; padding:8px;">📂 Cargar Copia de Datos</button>
+        <input type="file" id="importFile" style="display:none;" onchange="processImport(event)">
+        <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.85rem; font-weight:700; margin-top:5px;">
+          🚪 Salir
+        </button>
+      </div>
     </aside>
 
     <main>
-      <!-- ... (Mantén tus secciones: sec-dash, sec-inv, sec-fiscal, etc) ... -->
-      <div id="sec-dash">...</div>
       
-      <!-- [SECCIÓN NUEVA: CLIENTES] -->
-      <div id="sec-clients" style="display:none;">
-        <h1>Directorio de Clientes</h1>
-        <div class="card">
-          <input type="text" id="cName" class="input-sys" placeholder="Nombre/Razón Social">
-          <input type="text" id="cRif" class="input-sys" placeholder="RIF/CI">
-          <button onclick="saveClient()" class="btn-primary" style="margin-top:10px;">Guardar Cliente</button>
+      <!-- PANEL GENERAL -->
+      <div id="sec-dash">
+        <h1 style="margin-bottom:20px; color:var(--text);">Resumen Operativo</h1>
+        <div class="grid-3">
+          <div class="card">
+            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">TOTAL PRODUCTOS DIVERSOS</span>
+            <h2 id="dash-count" style="font-size:2rem; margin-top:5px; color:var(--accent);">0</h2>
+          </div>
+          <div class="card">
+            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">UNIDADES TOTALES EN STOCK</span>
+            <h2 id="dash-stock" style="font-size:2rem; margin-top:5px; color:var(--success);">0</h2>
+          </div>
+          <div class="card">
+            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">VALOR INVENTARIO (USD)</span>
+            <h2 id="dash-val" style="font-size:2rem; margin-top:5px; color:var(--accent);">$0.00</h2>
+          </div>
         </div>
-        <table class="table-sys"><tbody id="clientTable"></tbody></table>
       </div>
 
-      <!-- [INTEGRACIÓN EN NOTA DE ENTREGA] -->
+      <!-- INVENTARIO -->
+      <div id="sec-inv" style="display:none;">
+        <h1 style="margin-bottom:20px;">Gestión de Inventario y Control de Stock</h1>
+        
+        <div class="card">
+          <h3 style="margin-bottom:15px; font-size:0.95rem;">Registrar Nuevo Producto</h3>
+          
+          <div style="display:grid; grid-template-columns: 1fr 2fr 1fr 1fr 1fr; gap:10px; align-items:end; margin-bottom:12px;">
+            <div>
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CÓDIGO (AUTO)</label>
+              <input type="text" id="pCode" class="input-sys" readonly style="background:#e2e8f0; font-weight:bold;">
+            </div>
+            <div>
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">DESCRIPCIÓN DEL PRODUCTO</label>
+              <input type="text" id="pDesc" class="input-sys" placeholder="Nombre del artículo">
+            </div>
+            <div>
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 1 DETAL ($ USD)</label>
+              <input type="number" id="pPrice1" class="input-sys" placeholder="0.00" step="0.01">
+            </div>
+            <div>
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 2 MAYOR ($ USD)</label>
+              <input type="number" id="pPrice2" class="input-sys" placeholder="0.00" step="0.01">
+            </div>
+            <div>
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">STOCK INICIAL</label>
+              <input type="number" id="pStock" class="input-sys" value="50">
+            </div>
+          </div>
+          <button onclick="saveProduct()" class="btn-primary">+ Guardar Producto en Inventario</button>
+        </div>
+
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3>Productos Registrados</h3>
+            <input type="text" id="searchInv" class="input-sys" placeholder="Buscar producto..." oninput="renderInventoryTable()" style="width:220px;">
+          </div>
+          
+          <table class="table-sys">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Stock Disponible</th>
+                <th>Precio 1 - Detal (USD)</th>
+                <th>Precio 2 - Mayor (USD)</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="invTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- NOTA DE ENTREGA (SIN IVA) -->
       <div id="sec-pos" style="display:none;">
-        <div class="card">
-            <label>Seleccionar Cliente:</label>
-            <select id="clientSelector" class="input-sys" onchange="fillClientData()">
-                <option value="">Seleccionar cliente...</option>
-            </select>
-            <!-- (Sigue tu código original aquí) -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;" class="no-print">
+          <h1>Emisión de Notas de Entrega (Sin IVA)</h1>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-primary" onclick="guardarEImprimirNota()" style="background:#10b981; width:auto; padding:10px 18px;">🖨️ Guardar e Imprimir Nota</button>
+            <button class="btn-primary" onclick="nuevaFactura()" style="background:var(--accent); width:auto; padding:10px 18px;">+ Nueva Nota Limpia</button>
+          </div>
         </div>
-        <!-- ... -->
+
+        <div class="card no-print">
+          <h3 style="font-size:0.9rem; margin-bottom:10px;">Encabezado y Datos del Cliente</h3>
+          <div class="grid-3" style="margin-bottom:12px;">
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">Nº NOTA DE ENTREGA (AUTO)</label>
+              <input type="text" id="fInputNum" class="input-sys" readonly style="background:#e2e8f0; font-weight:bold;">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FECHA DE EMISIÓN</label>
+              <input type="date" id="fInputEmision" class="input-sys" onchange="autoCalculateExpiry()">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FECHA VENCIMIENTO (+15 DÍAS)</label>
+              <input type="date" id="fInputVenc" class="input-sys" onchange="updateFactura()">
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-bottom:15px;">
+            <input type="text" id="fInputName" class="input-sys" placeholder="Nombre / Razón Social" oninput="updateFactura()">
+            <input type="text" id="fInputDir" class="input-sys" placeholder="Dirección Fiscal" oninput="updateFactura()">
+            <input type="text" id="fInputRif" class="input-sys" placeholder="RIF / C.I." oninput="updateFactura()">
+            <input type="text" id="fInputPhone" class="input-sys" placeholder="Teléfono de Contacto" oninput="updateFactura()">
+          </div>
+
+          <div class="grid-2" style="margin-bottom:15px;">
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE PESOS (COP MANUAL)</label>
+              <input type="number" id="fManualCop" class="input-sys" placeholder="0.00" step="0.01" oninput="updateFactura()">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE BOLÍVARES (BS MANUAL)</label>
+              <input type="number" id="fManualBs" class="input-sys" placeholder="0.00" step="0.01" oninput="updateFactura()">
+            </div>
+          </div>
+
+          <h3 style="font-size:0.9rem; margin-bottom:10px;">Añadir Productos</h3>
+          <div style="margin-bottom: 10px;">
+            <input type="text" id="posProductSearch" class="input-sys" placeholder="🔍 Buscar producto..." oninput="filterPosProducts()" style="border-color: var(--accent); background: #ffffff;">
+          </div>
+
+          <div style="display:flex; gap:10px;">
+            <select id="pSelect" class="input-sys" style="flex:2;"></select>
+            <select id="priceType" class="input-sys" style="flex:1;">
+              <option value="1">Precio 1 (Detal)</option>
+              <option value="2">Precio 2 (Mayor)</option>
+            </select>
+            <input type="number" id="pQty" class="input-sys" value="1" style="width:90px;">
+            <button onclick="addToCart()" class="btn-primary" style="width:auto; padding:0 20px;">+ Añadir</button>
+          </div>
+        </div>
+
+        <!-- IMPRESIÓN NOTA DE ENTREGA (LIMPIA SIN IVA) -->
+        <div class="print-sheet">
+          <div class="invoice-preview">
+            <div class="doc-header">
+              <div class="doc-title">Comercializadora Tío Julián</div>
+              <div class="doc-sub">"De la mano de sus clientes" — NOTA DE ENTREGA</div>
+              <div class="doc-fiscal">RIF: 164227940 &nbsp;|&nbsp; DIR: Pirineos 1</div>
+              <div style="margin-top:2px; font-weight:800; font-size:0.7rem;">
+                NOTA Nº: <span class="lbl-fnum">0000001</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
+                EMISIÓN: <span class="lbl-femision">--/--/----</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
+                VENC: <span class="lbl-fvenc">--/--/----</span>
+              </div>
+            </div>
+
+            <div class="doc-client">
+              <div>CLIENTE: <span class="lbl-fname">---</span> &nbsp;&nbsp;|&nbsp;&nbsp; RIF/CI: <span class="lbl-frif">---</span></div>
+              <div>DIRECCIÓN: <span class="lbl-fdir">---</span> &nbsp;&nbsp;|&nbsp;&nbsp; TEL: <span class="lbl-fphone">---</span></div>
+            </div>
+
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th style="width:5%;">#</th>
+                  <th style="width:16%;">CÓDIGO</th>
+                  <th>DESCRIPCIÓN DEL PRODUCTO</th>
+                  <th style="text-align:right; width:10%;">CANT</th>
+                  <th style="text-align:right; width:14%;">PRECIO U.</th>
+                  <th style="text-align:right; width:15%;">TOTAL ($)</th>
+                </tr>
+              </thead>
+              <tbody class="cart-table-body"></tbody>
+            </table>
+
+            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="qrcode-box"></div>
+                <div style="font-size:0.55rem; max-width:180px; line-height:1.1;">
+                  Verificación Digital Comercializadora Tío Julián.
+                </div>
+              </div>
+
+              <div class="doc-totals">
+                <div style="font-size:0.85rem; font-weight:900; padding-top:1px;">
+                  TOTAL A PAGAR: $<span class="lbl-total-usd">0.00</span> USD
+                </div>
+                <div style="font-size:0.68rem; margin-top:2px;">EQUIV: $<span class="lbl-total-cop">0.00</span> COP &nbsp;|&nbsp; <span class="lbl-total-bs">0.00</span> Bs.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- [SECCIÓN NUEVA: CONFIGURACIÓN] -->
-      <div id="sec-config" style="display:none;">
-        <h1>Configuración General</h1>
-        <div class="card">
-            <h3>Categorías de Productos</h3>
-            <input type="text" id="newCat" class="input-sys">
-            <button onclick="addCategory()" class="btn-primary">Añadir Categoría</button>
-            <div id="catList" style="margin-top:10px;"></div>
+      <!-- FACTURAS FISCALES (SENIAT) -->
+      <div id="sec-fiscal" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;" class="no-print">
+          <h1 style="color:var(--fiscal);">🧾 Facturación Fiscal SENIAT (Con IVA 16%)</h1>
+          <button class="btn-primary" onclick="guardarEImprimirFacturaFiscal()" style="background:var(--fiscal); width:auto; padding:10px 18px;">🖨️ Emitir Factura Fiscal</button>
         </div>
+
+        <div class="card no-print">
+          <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:15px;">Este apartado está diseñado para cuando desees emitir facturas legales con desglose tributario de IVA del 16%.</p>
+          
+          <div class="grid-3" style="margin-bottom:12px;">
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FACTURA FISCAL Nº</label>
+              <input type="text" id="fiscalNum" class="input-sys" readonly style="background:#e2e8f0; font-weight:bold;">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FECHA DE EMISIÓN</label>
+              <input type="date" id="fiscalEmision" class="input-sys">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">Nº DE CONTROL FISCAL</label>
+              <input type="text" id="fiscalControl" class="input-sys" placeholder="00-000001">
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-bottom:15px;">
+            <input type="text" id="fiscalName" class="input-sys" placeholder="Razón Social / Nombre Cliente">
+            <input type="text" id="fiscalRif" class="input-sys" placeholder="RIF (Ej: J-12345678-0)">
+          </div>
+
+          <h3 style="font-size:0.9rem; margin-bottom:10px;">Añadir Ítems a la Factura Fiscal</h3>
+          <div style="display:flex; gap:10px;">
+            <select id="fiscalPSelect" class="input-sys" style="flex:2;"></select>
+            <input type="number" id="fiscalPQty" class="input-sys" value="1" style="width:90px;">
+            <button onclick="addFiscalCart()" class="btn-primary" style="background:var(--fiscal); width:auto; padding:0 20px;">+ Añadir a Factura</button>
+          </div>
+        </div>
+
         <div class="card">
-            <h3>Proveedores</h3>
-            <input type="text" id="newSupp" class="input-sys">
-            <button onclick="addSupplier()" class="btn-primary">Añadir Proveedor</button>
-            <div id="suppList" style="margin-top:10px;"></div>
+          <h3>Detalle de la Factura Fiscal en Proceso</h3>
+          <table class="table-sys">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Cant.</th>
+                <th>Precio Base</th>
+                <th>IVA (16%)</th>
+                <th>Total ($ USD)</th>
+              </tr>
+            </thead>
+            <tbody id="fiscalTableBody"></tbody>
+          </table>
+          <div style="text-align:right; margin-top:15px; font-weight:bold; font-size:1rem;">
+            Subtotal Base: $<span id="fiscalBase">0.00</span> | IVA (16%): $<span id="fiscalIva">0.00</span> | TOTAL FISCAL: $<span id="fiscalTotal">0.00</span> USD
+          </div>
         </div>
       </div>
-      
-      <!-- (El resto de tus secciones originales: sec-inv, sec-fiscal, etc.) -->
+
+      <!-- HISTORIAL DE NOTAS -->
+      <div id="sec-hist" style="display:none;">
+        <h1 style="margin-bottom:20px;">Historial de Notas Emitidas</h1>
+        <div class="card">
+          <table class="table-sys">
+            <thead>
+              <tr>
+                <th>Nº Nota</th>
+                <th>Fecha Emisión</th>
+                <th>Cliente</th>
+                <th>Total USD</th>
+                <th>Total COP</th>
+                <th>Total BS</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="histTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VENTAS DIARIAS -->
+      <div id="sec-sales" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;" class="no-print">
+          <h1>Reporte Diario de Ventas</h1>
+          <button class="btn-primary" onclick="window.print()" style="width:auto; padding:10px 18px;">🖨️ Imprimir Reporte</button>
+        </div>
+
+        <div class="card no-print">
+          <label style="font-size:0.75rem; font-weight:bold;">SELECCIONAR FECHA:</label>
+          <input type="date" id="salesDateFilter" class="input-sys" style="width:200px; display:inline-block; margin-left:10px;" onchange="renderDailySales()">
+        </div>
+
+        <div class="card">
+          <h2 id="salesReportTitle" style="font-size:1.1rem; margin-bottom:15px; color:var(--accent);">Ventas del Día</h2>
+          <div class="grid-3" style="margin-bottom:20px;">
+            <div>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">NOTAS GENERADAS</span>
+              <h3 id="salesCount" style="font-size:1.5rem;">0</h3>
+            </div>
+            <div>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">RECAUDADO USD</span>
+              <h3 id="salesTotalUsd" style="font-size:1.5rem; color:var(--success);">$0.00 USD</h3>
+            </div>
+            <div>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">RECAUDADO COP / BS</span>
+              <h3 id="salesTotalAlt" style="font-size:1.1rem;">$0.00 / 0.00 Bs</h3>
+            </div>
+          </div>
+
+          <table class="table-sys">
+            <thead>
+              <tr>
+                <th>Nº Nota</th>
+                <th>Detalle de Productos</th>
+                <th>Total ($ USD)</th>
+              </tr>
+            </thead>
+            <tbody id="salesTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MÓDULOS NUEVOS (SCALFODING) -->
+      <div id="sec-clients" style="display:none;"><div class="card"><h1>Módulo de Clientes</h1><p>En desarrollo...</p></div></div>
+      <div id="sec-cats" style="display:none;"><div class="card"><h1>Módulo de Categorías</h1><p>En desarrollo...</p></div></div>
+      <div id="sec-supp" style="display:none;"><div class="card"><h1>Módulo de Proveedores</h1><p>En desarrollo...</p></div></div>
+      <div id="sec-conf" style="display:none;"><div class="card"><h1>Configuración</h1><p>En desarrollo...</p></div></div>
+
+      <!-- SEGURIDAD -->
+      <div id="sec-sec" style="display:none;">
+        <h1 style="margin-bottom:10px; color:var(--danger);">🛡️ Escudo de Seguridad & Registro de Bloqueos</h1>
+        <p style="color:var(--text-muted); margin-bottom:20px;">Monitoreo en tiempo real de direcciones IP bloqueadas.</p>
+
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3>Dispositivos e IPs Bloqueados</h3>
+            <button onclick="clearAllSecurityLogs()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:bold;">Restablecer Todo</button>
+          </div>
+
+          <table class="table-sys">
+            <thead>
+              <tr>
+                <th>Dirección IP Detectada</th>
+                <th>Dispositivo / Navegador Atacante</th>
+                <th>Fecha y Hora del Intentos</th>
+                <th>Intentos Fallidos</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="securityTable"></tbody>
+          </table>
+        </div>
+      </div>
+
     </main>
   </div>
 
   <script>
-    // --- LÓGICA DE DATOS NUEVOS ---
-    window.categories = JSON.parse(localStorage.getItem('tj_cats_v7')) || ['General'];
-    window.suppliers = JSON.parse(localStorage.getItem('tj_supps_v7')) || ['Sin Proveedor'];
-    window.clients = JSON.parse(localStorage.getItem('tj_clients_v7')) || [];
+    const GAMMA_SITE_URL = "https://comercializadoratiojulia-w8lw1af.gamma.site/";
 
-    // --- FUNCIONES NUEVAS ---
-    function saveClient() {
-      const name = document.getElementById('cName').value;
-      const rif = document.getElementById('cRif').value;
-      if(!name) return;
-      window.clients.push({name, rif});
-      saveToStorage();
-      renderClientsUI();
+    // -------------------------------------------------------------------
+    // SEGURIDAD ANTI-HACKEO Y CONTROL IP
+    // -------------------------------------------------------------------
+    let userIP = "192.168.1.100";
+    
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => { userIP = data.ip; checkIPStatus(); })
+      .catch(() => { checkIPStatus(); });
+
+    function getDeviceDescription() {
+      const ua = navigator.userAgent;
+      let dev = "Equipo Desconocido";
+      if (ua.includes("Windows")) dev = "Windows PC";
+      else if (ua.includes("Macintosh")) dev = "Mac Apple";
+      else if (ua.includes("Android")) dev = "Teléfono Android";
+      else if (ua.includes("iPhone")) dev = "iPhone Apple";
+
+      let browser = "Navegador Web";
+      if (ua.includes("Chrome")) browser = "Google Chrome";
+      else if (ua.includes("Firefox")) browser = "Mozilla Firefox";
+      else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Apple Safari";
+      else if (ua.includes("Edg")) browser = "Microsoft Edge";
+
+      return `${dev} (${browser})`;
     }
 
-    function addCategory() {
-      const val = document.getElementById('newCat').value;
-      if(val) { window.categories.push(val); saveToStorage(); renderConfigUI(); }
-    }
+    function getBlockedIPs() { return JSON.parse(localStorage.getItem('tj_blocked_ips')) || {}; }
+    function saveBlockedIPs(data) { localStorage.setItem('tj_blocked_ips', JSON.stringify(data)); }
+    window.saveBlockedIPs = saveBlockedIPs;
 
-    function addSupplier() {
-      const val = document.getElementById('newSupp').value;
-      if(val) { window.suppliers.push(val); saveToStorage(); renderConfigUI(); }
-    }
+    function checkIPStatus() {
+      const blocked = getBlockedIPs();
+      const current = blocked[userIP];
 
-    function fillClientData() {
-      const idx = document.getElementById('clientSelector').value;
-      if (idx !== "") {
-        const c = window.clients[idx];
-        document.getElementById('fInputName').value = c.name;
-        document.getElementById('fInputRif').value = c.rif;
-        updateFactura();
+      if (current && current.attempts >= 4) {
+        document.getElementById('ipBlockedMessage').style.display = 'block';
+        document.getElementById('loginForm').style.display = 'none';
+      } else {
+        document.getElementById('ipBlockedMessage').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'block';
       }
     }
 
-    function renderClientsUI() {
-      const sel = document.getElementById('clientSelector');
-      sel.innerHTML = '<option value="">Seleccionar cliente...</option>' + window.clients.map((c, i) => `<option value="${i}">${c.name}</option>`).join('');
-      document.getElementById('clientTable').innerHTML = window.clients.map(c => `<tr><td>${c.name}</td><td>${c.rif}</td></tr>`).join('');
+    function forceUnblockThisDevice() {
+      localStorage.removeItem('tj_blocked_ips');
+      if (window.saveToFirebaseCloud) window.saveToFirebaseCloud();
+      checkIPStatus();
+      alert("Dispositivo liberado con éxito. Ya puedes iniciar sesión.");
     }
 
-    function renderConfigUI() {
-      document.getElementById('catList').innerHTML = window.categories.join(', ');
-      document.getElementById('suppList').innerHTML = window.suppliers.join(', ');
+    function registerFailedAttempt() {
+      const blocked = getBlockedIPs();
+      if (!blocked[userIP]) {
+        blocked[userIP] = { ip: userIP, device: getDeviceDescription(), attempts: 0, lastDate: new Date().toLocaleString() };
+      }
+      blocked[userIP].attempts += 1;
+      blocked[userIP].lastDate = new Date().toLocaleString();
+      saveBlockedIPs(blocked);
+      if (window.saveToFirebaseCloud) window.saveToFirebaseCloud();
+
+      const remaining = 4 - blocked[userIP].attempts;
+      const counterEl = document.getElementById('attemptCounter');
+      counterEl.style.display = 'block';
+
+      if (remaining > 0) {
+        counterEl.innerText = `⚠️ Clave incorrecta. Le quedan ${remaining} intento(s).`;
+      } else {
+        checkIPStatus();
+      }
     }
 
-    // --- INTEGRACIÓN EN TU renderAll EXISTENTE ---
-    // (Asegúrate de incluir estas llamadas en tu función renderAll original)
-    // renderClientsUI();
-    // renderConfigUI();
+    function unblockIP(ipToUnblock) {
+      const blocked = getBlockedIPs();
+      if (blocked[ipToUnblock]) {
+        delete blocked[ipToUnblock];
+        saveBlockedIPs(blocked);
+        if (window.saveToFirebaseCloud) window.saveToFirebaseCloud();
+        renderSecurityTable();
+        checkIPStatus();
+        alert(`La IP ${ipToUnblock} ha sido desbloqueada.`);
+      }
+    }
 
-    // ... (El resto de tu código original sigue igual hasta el final) ...
+    function clearAllSecurityLogs() {
+      if (confirm("¿Desbloquear todas las IPs registradas?")) {
+        localStorage.removeItem('tj_blocked_ips');
+        if (window.saveToFirebaseCloud) window.saveToFirebaseCloud();
+        renderSecurityTable();
+        checkIPStatus();
+      }
+    }
+
+    function renderSecurityTable() {
+      const tbody = document.getElementById('securityTable');
+      tbody.innerHTML = '';
+      const blocked = getBlockedIPs();
+
+      const keys = Object.keys(blocked);
+      if (keys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No hay IPs bloqueadas.</td></tr>`;
+        return;
+      }
+
+      keys.forEach(ip => {
+        const item = blocked[ip];
+        const isBlocked = item.attempts >= 4;
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${item.ip}</strong></td>
+            <td>${item.device}</td>
+            <td>${item.lastDate}</td>
+            <td><span style="color:var(--danger); font-weight:bold;">${item.attempts} / 4</span></td>
+            <td><span style="${isBlocked ? 'color:red; font-weight:bold;' : ''}">${isBlocked ? '⛔ BLOQUEADO' : '⚠️ Advertencia'}</span></td>
+            <td><button onclick="unblockIP('${item.ip}')" style="background:var(--success); color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Desbloquear</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    // -------------------------------------------------------------------
+    // OPERACIONES DEL SISTEMA Y FACTURACIÓN
+    // -------------------------------------------------------------------
+    function generateOfflineQR(text) {
+      const encodedText = encodeURIComponent(text);
+      return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${encodedText}" alt="QR" width="50" height="50" />`;
+    }
+
+    window.inventory = JSON.parse(localStorage.getItem('tj_inv_v7')) || [];
+    window.invoicesHistory = JSON.parse(localStorage.getItem('tj_invoices_v7')) || [];
+    window.fiscalInvoicesHistory = JSON.parse(localStorage.getItem('tj_fiscal_invoices_v7')) || [];
+    // NUEVO STORAGE
+    window.clients = JSON.parse(localStorage.getItem('tj_clients_v7')) || [];
+    window.categories = JSON.parse(localStorage.getItem('tj_categories_v7')) || [];
+    window.suppliers = JSON.parse(localStorage.getItem('tj_suppliers_v7')) || [];
+
+    window.nextNotaNumber = parseInt(localStorage.getItem('tj_nota_num_v7')) || 1;
+    window.nextFiscalNumber = parseInt(localStorage.getItem('tj_fiscal_num_v7')) || 1;
+    window.nextProdNum = parseInt(localStorage.getItem('tj_prod_num_v7')) || (window.inventory.length + 1);
+
+    let cart = [];
+    let fiscalCart = [];
+
+    function checkPublicRoute() {
+      if (window.location.hash.startsWith('#verificar')) {
+        const params = new URLSearchParams(window.location.hash.split('?')[1]);
+        document.getElementById('pub-num').innerText = params.get('num') || 'Desconocido';
+        document.getElementById('pub-monto').innerText = params.get('monto') ? `$${parseFloat(params.get('monto')).toFixed(2)} USD` : '---';
+        document.getElementById('pub-fecha').innerText = params.get('fecha') || '---';
+        document.getElementById('public-qr-screen').style.display = 'flex';
+      } else {
+        document.getElementById('public-qr-screen').style.display = 'none';
+      }
+    }
+    window.addEventListener('hashchange', checkPublicRoute);
+
+    function initDates() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('fInputEmision').value = today;
+      document.getElementById('fiscalEmision').value = today;
+      document.getElementById('salesDateFilter').value = today;
+      
+      document.getElementById('fInputNum').value = String(window.nextNotaNumber).padStart(7, '0');
+      document.getElementById('fiscalNum').value = "FACT-" + String(window.nextFiscalNumber).padStart(6, '0');
+
+      updateAutoProdCode();
+      autoCalculateExpiry();
+    }
+    window.initDates = initDates;
+
+    function updateAutoProdCode() {
+      document.getElementById('pCode').value = "PROD-" + String(window.nextProdNum).padStart(4, '0');
+    }
+
+    function autoCalculateExpiry() {
+      const emisionVal = document.getElementById('fInputEmision').value;
+      if (!emisionVal) return;
+
+      const emisionDate = new Date(emisionVal + 'T00:00:00');
+      emisionDate.setDate(emisionDate.getDate() + 15);
+      document.getElementById('fInputVenc').value = emisionDate.toISOString().split('T')[0];
+      updateFactura();
+    }
+
+    function login(e) {
+      e.preventDefault();
+      const u = document.getElementById('userInput').value;
+      const p = document.getElementById('passInput').value;
+
+      if (u === 'admin' && p === '15597680') {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-container').style.display = 'flex';
+        initDates();
+        renderAll();
+      } else {
+        registerFailedAttempt();
+      }
+    }
+
+    function showTab(tab) {
+      document.getElementById('sec-dash').style.display = tab === 'dash' ? 'block' : 'none';
+      document.getElementById('sec-inv').style.display = tab === 'inv' ? 'block' : 'none';
+      document.getElementById('sec-pos').style.display = tab === 'pos' ? 'block' : 'none';
+      document.getElementById('sec-fiscal').style.display = tab === 'fiscal' ? 'block' : 'none';
+      document.getElementById('sec-hist').style.display = tab === 'hist' ? 'block' : 'none';
+      document.getElementById('sec-sales').style.display = tab === 'sales' ? 'block' : 'none';
+      document.getElementById('sec-sec').style.display = tab === 'sec' ? 'block' : 'none';
+      
+      // MOSTRAR NUEVOS
+      document.getElementById('sec-clients').style.display = tab === 'clients' ? 'block' : 'none';
+      document.getElementById('sec-cats').style.display = tab === 'cats' ? 'block' : 'none';
+      document.getElementById('sec-supp').style.display = tab === 'supp' ? 'block' : 'none';
+      document.getElementById('sec-conf').style.display = tab === 'conf' ? 'block' : 'none';
+
+      document.getElementById('m-dash').className = tab === 'dash' ? 'active' : '';
+      document.getElementById('m-inv').className = tab === 'inv' ? 'active' : '';
+      document.getElementById('m-pos').className = tab === 'pos' ? 'active' : '';
+      document.getElementById('m-fiscal').className = tab === 'fiscal' ? 'active' : '';
+      document.getElementById('m-hist').className = tab === 'hist' ? 'active' : '';
+      document.getElementById('m-sales').className = tab === 'sales' ? 'active' : '';
+      document.getElementById('m-sec').className = tab === 'sec' ? 'active' : '';
+      // ACTIVAR NUEVOS
+      document.getElementById('m-clients').className = tab === 'clients' ? 'active' : '';
+      document.getElementById('m-cats').className = tab === 'cats' ? 'active' : '';
+      document.getElementById('m-supp').className = tab === 'supp' ? 'active' : '';
+      document.getElementById('m-conf').className = tab === 'conf' ? 'active' : '';
+
+      if (tab === 'sales') renderDailySales();
+      if (tab === 'hist') renderHistoryTable();
+      if (tab === 'sec') renderSecurityTable();
+    }
+
+    function saveProduct() {
+      const code = document.getElementById('pCode').value;
+      const desc = document.getElementById('pDesc').value;
+      const p1 = parseFloat(document.getElementById('pPrice1').value);
+      const p2 = parseFloat(document.getElementById('pPrice2').value) || p1;
+      const stock = parseInt(document.getElementById('pStock').value) || 0;
+
+      if(!desc || isNaN(p1)) return alert("Escriba la descripción y el Precio 1.");
+
+      window.inventory.push({ code, desc, p1, p2, initialStock: stock, currentStock: stock });
+      window.nextProdNum++;
+      
+      saveToStorage();
+
+      document.getElementById('pDesc').value = '';
+      document.getElementById('pPrice1').value = '';
+      document.getElementById('pPrice2').value = '';
+      document.getElementById('pStock').value = '50';
+
+      updateAutoProdCode();
+      renderAll();
+    }
+
+    function deleteProduct(idx) {
+      if(confirm("¿Eliminar este producto?")) {
+        window.inventory.splice(idx, 1);
+        saveToStorage();
+        renderAll();
+      }
+    }
+
+    function filterPosProducts() {
+      const query = document.getElementById('posProductSearch').value.toLowerCase().trim();
+      const pSelect = document.getElementById('pSelect');
+      const fiscalPSelect = document.getElementById('fiscalPSelect');
+      
+      pSelect.innerHTML = '';
+      fiscalPSelect.innerHTML = '';
+
+      window.inventory.forEach((item, idx) => {
+        if (item.code.toLowerCase().includes(query) || item.desc.toLowerCase().includes(query)) {
+          const opt = `<option value="${idx}">${item.code} — ${item.desc} (Stock: ${item.currentStock})</option>`;
+          pSelect.innerHTML += opt;
+          fiscalPSelect.innerHTML += opt;
+        }
+      });
+    }
+
+    function addToCart() {
+      if (cart.length >= 32) return alert("Máximo 32 ítems por nota.");
+
+      const idx = document.getElementById('pSelect').value;
+      const pType = document.getElementById('priceType').value;
+      const qty = parseFloat(document.getElementById('pQty').value);
+
+      if(idx === "" || !window.inventory[idx]) return alert("Seleccione un producto.");
+      if(isNaN(qty) || qty <= 0) return alert("Cantidad no válida.");
+
+      const item = window.inventory[idx];
+      if (qty > item.currentStock) return alert(`Stock insuficiente. Quedan ${item.currentStock}.`);
+
+      const selectedPrice = pType === '1' ? item.p1 : item.p2;
+      item.currentStock -= qty;
+      saveToStorage();
+
+      cart.push({ code: item.code, desc: item.desc, qty, price: selectedPrice });
+      
+      filterPosProducts();
+      renderCart();
+      renderInventoryTable();
+    }
+
+    function guardarEImprimirNota() {
+      if (cart.length === 0) return alert("Añada productos primero.");
+
+      const numStr = document.getElementById('fInputNum').value;
+      const totalUsd = parseFloat(document.querySelector('.lbl-total-usd').innerText.replace(/,/g, '')) || 0;
+      const totalCop = parseFloat(document.getElementById('fManualCop').value) || 0;
+      const totalBs = parseFloat(document.getElementById('fManualBs').value) || 0;
+
+      const notaData = {
+        num: numStr,
+        emision: document.getElementById('fInputEmision').value,
+        venc: document.getElementById('fInputVenc').value,
+        client: document.getElementById('fInputName').value || 'CLIENTE GENERAL',
+        dir: document.getElementById('fInputDir').value || 'S/D',
+        rif: document.getElementById('fInputRif').value || 'V-00000000',
+        phone: document.getElementById('fInputPhone').value || 'S/T',
+        cart: [...cart],
+        totalUsd, totalCop, totalBs
+      };
+
+      window.invoicesHistory.push(notaData);
+      saveToStorage();
+
+      window.print();
+    }
+
+    function nuevaFactura() {
+      window.nextNotaNumber++;
+      saveToStorage();
+      cart = [];
+      
+      document.getElementById('fInputName').value = '';
+      document.getElementById('fInputDir').value = '';
+      document.getElementById('fInputRif').value = '';
+      document.getElementById('fInputPhone').value = '';
+      document.getElementById('fManualCop').value = '';
+      document.getElementById('fManualBs').value = '';
+      document.getElementById('posProductSearch').value = '';
+      
+      initDates();
+      renderAll();
+    }
+
+    function updateFactura() {
+      const num = document.getElementById('fInputNum').value;
+      const emision = document.getElementById('fInputEmision').value;
+      const venc = document.getElementById('fInputVenc').value;
+      const name = document.getElementById('fInputName').value || '---';
+      const dir = document.getElementById('fInputDir').value || '---';
+      const rif = document.getElementById('fInputRif').value || '---';
+      const phone = document.getElementById('fInputPhone').value || '---';
+
+      document.querySelectorAll('.lbl-fnum').forEach(el => el.innerText = num);
+      document.querySelectorAll('.lbl-femision').forEach(el => el.innerText = emision);
+      document.querySelectorAll('.lbl-fvenc').forEach(el => el.innerText = venc);
+      document.querySelectorAll('.lbl-fname').forEach(el => el.innerText = name);
+      document.querySelectorAll('.lbl-fdir').forEach(el => el.innerText = dir);
+      document.querySelectorAll('.lbl-frif').forEach(el => el.innerText = rif);
+      document.querySelectorAll('.lbl-fphone').forEach(el => el.innerText = phone);
+
+      const manualCop = parseFloat(document.getElementById('fManualCop').value) || 0;
+      const manualBs = parseFloat(document.getElementById('fManualBs').value) || 0;
+
+      document.querySelectorAll('.lbl-total-cop').forEach(el => el.innerText = manualCop.toLocaleString('en-US', {minimumFractionDigits: 2}));
+      document.querySelectorAll('.lbl-total-bs').forEach(el => el.innerText = manualBs.toLocaleString('en-US', {minimumFractionDigits: 2}));
+    }
+
+    function renderInventoryTable() {
+      const invTbody = document.getElementById('invTable');
+      const filter = document.getElementById('searchInv')?.value.toLowerCase() || '';
+
+      invTbody.innerHTML = '';
+      window.inventory.forEach((item, idx) => {
+        if(item.desc.toLowerCase().includes(filter) || item.code.toLowerCase().includes(filter)) {
+          invTbody.innerHTML += `
+            <tr>
+              <td><strong>${item.code}</strong></td>
+              <td>${item.desc}</td>
+              <td><strong>${item.currentStock} dispon.</strong></td>
+              <td><strong>$${item.p1.toFixed(2)} USD</strong></td>
+              <td><strong>$${item.p2.toFixed(2)} USD</strong></td>
+              <td><button onclick="deleteProduct(${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:700;">Eliminar</button></td>
+            </tr>
+          `;
+        }
+      });
+    }
+
+    function renderCart() {
+      const tbodies = document.querySelectorAll('.cart-table-body');
+      tbodies.forEach(tb => tb.innerHTML = '');
+      
+      let grandTotal = 0;
+
+      cart.forEach((item, index) => {
+        const itemTotal = item.qty * item.price;
+        grandTotal += itemTotal;
+
+        const rowHTML = `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${item.code}</td>
+            <td>${item.desc}</td>
+            <td style="text-align:right;">${item.qty.toFixed(2)}</td>
+            <td style="text-align:right;">${item.price.toFixed(2)}</td>
+            <td style="text-align:right;">${itemTotal.toFixed(2)}</td>
+          </tr>
+        `;
+        tbodies.forEach(tb => tb.innerHTML += rowHTML);
+      });
+
+      document.querySelectorAll('.lbl-total-usd').forEach(el => el.innerText = grandTotal.toFixed(2));
+
+      const qrPublicUrl = `${GAMMA_SITE_URL}#verificar?num=${document.getElementById('fInputNum').value}&monto=${grandTotal.toFixed(2)}&fecha=${document.getElementById('fInputEmision').value}`;
+      document.querySelectorAll(".qrcode-box").forEach(box => {
+        box.innerHTML = generateOfflineQR(qrPublicUrl);
+      });
+
+      updateFactura();
+    }
+
+    // --- MÓDULO FISCAL (SENIAT) ---
+    function addFiscalCart() {
+      const idx = document.getElementById('fiscalPSelect').value;
+      const qty = parseFloat(document.getElementById('fiscalPQty').value);
+
+      if(idx === "" || !window.inventory[idx]) return alert("Seleccione un producto");
+      const item = window.inventory[idx];
+
+      const basePrice = item.p1;
+      const iva = basePrice * 0.16;
+      const totalItem = (basePrice + iva) * qty;
+
+      fiscalCart.push({ code: item.code, desc: item.desc, qty, basePrice, iva, totalItem });
+      renderFiscalCart();
+    }
+
+    function renderFiscalCart() {
+      const tbody = document.getElementById('fiscalTableBody');
+      tbody.innerHTML = '';
+
+      let baseSum = 0, ivaSum = 0, totalSum = 0;
+
+      fiscalCart.forEach(item => {
+        const itemBase = item.basePrice * item.qty;
+        const itemIva = item.iva * item.qty;
+
+        baseSum += itemBase;
+        ivaSum += itemIva;
+        totalSum += item.totalItem;
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${item.code}</td>
+            <td>${item.desc}</td>
+            <td>${item.qty}</td>
+            <td>$${itemBase.toFixed(2)}</td>
+            <td>$${itemIva.toFixed(2)}</td>
+            <td><strong>$${item.totalItem.toFixed(2)}</strong></td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('fiscalBase').innerText = baseSum.toFixed(2);
+      document.getElementById('fiscalIva').innerText = ivaSum.toFixed(2);
+      document.getElementById('fiscalTotal').innerText = totalSum.toFixed(2);
+    }
+
+    function guardarEImprimirFacturaFiscal() {
+      if (fiscalCart.length === 0) return alert("Agregue productos a la factura fiscal.");
+      
+      const num = document.getElementById('fiscalNum').value;
+      const control = document.getElementById('fiscalControl').value;
+      const client = document.getElementById('fiscalName').value;
+      const rif = document.getElementById('fiscalRif').value;
+
+      if (!control || !client || !rif) return alert("Complete el número de control, razón social y RIF del cliente.");
+
+      window.fiscalInvoicesHistory.push({
+        num, control, client, rif,
+        emision: document.getElementById('fiscalEmision').value,
+        cart: [...fiscalCart],
+        total: parseFloat(document.getElementById('fiscalTotal').innerText)
+      });
+
+      window.nextFiscalNumber++;
+      saveToStorage();
+      alert(`Factura Fiscal ${num} registrada exitosamente.`);
+      fiscalCart = [];
+      renderFiscalCart();
+      initDates();
+    }
+
+    function renderHistoryTable() {
+      const tbody = document.getElementById('histTable');
+      tbody.innerHTML = '';
+
+      window.invoicesHistory.slice().reverse().forEach(inv => {
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${inv.num}</strong></td>
+            <td>${inv.emision}</td>
+            <td>${inv.client}</td>
+            <td><strong>$${inv.totalUsd.toFixed(2)} USD</strong></td>
+            <td>$${inv.totalCop.toLocaleString()} COP</td>
+            <td>${inv.totalBs.toFixed(2)} Bs</td>
+            <td><button onclick="reimprimirNota('${inv.num}')" style="background:var(--accent); color:#fff; border:none; padding:4px 10px; border-radius:4px; cursor:pointer;">Ver / Imprimir</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    function reimprimirNota(num) {
+      const inv = window.invoicesHistory.find(i => i.num === num);
+      if(!inv) return;
+
+      document.getElementById('fInputNum').value = inv.num;
+      document.getElementById('fInputEmision').value = inv.emision;
+      document.getElementById('fInputVenc').value = inv.venc;
+      document.getElementById('fInputName').value = inv.client;
+      document.getElementById('fInputDir').value = inv.dir;
+      document.getElementById('fInputRif').value = inv.rif;
+      document.getElementById('fInputPhone').value = inv.phone;
+      document.getElementById('fManualCop').value = inv.totalCop;
+      document.getElementById('fManualBs').value = inv.totalBs;
+      
+      cart = inv.cart;
+      showTab('pos');
+      renderCart();
+    }
+
+    function renderDailySales() {
+      const selectedDate = document.getElementById('salesDateFilter').value;
+      const tbody = document.getElementById('salesTable');
+      tbody.innerHTML = '';
+
+      const filtered = window.invoicesHistory.filter(i => i.emision === selectedDate);
+      let totalUsd = 0, totalCop = 0, totalBs = 0;
+
+      filtered.forEach(inv => {
+        totalUsd += inv.totalUsd;
+        totalCop += inv.totalCop;
+        totalBs += inv.totalBs;
+
+        let itemsSummary = inv.cart.map(i => `• ${i.desc} (${i.qty} x $${i.price.toFixed(2)} USD)`).join('<br>');
+
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${inv.num}</strong></td>
+            <td>${itemsSummary}</td>
+            <td><strong>$${inv.totalUsd.toFixed(2)} USD</strong></td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('salesReportTitle').innerText = `Ventas del Día (${selectedDate})`;
+      document.getElementById('salesCount').innerText = filtered.length;
+      document.getElementById('salesTotalUsd').innerText = '$' + totalUsd.toFixed(2) + ' USD';
+      document.getElementById('salesTotalAlt').innerText = `$${totalCop.toLocaleString()} COP / ${totalBs.toFixed(2)} Bs`;
+    }
+
+    function renderAll() {
+      document.getElementById('dash-count').innerText = window.inventory.length;
+      const totalStock = window.inventory.reduce((acc, i) => acc + (i.currentStock || 0), 0);
+      document.getElementById('dash-stock').innerText = totalStock;
+
+      const totalInvVal = window.inventory.reduce((acc, i) => acc + (i.p1 * (i.currentStock || 0)), 0);
+      document.getElementById('dash-val').innerText = '$' + totalInvVal.toFixed(2);
+
+      filterPosProducts();
+      renderInventoryTable();
+      renderCart();
+    }
+    window.renderAll = renderAll;
+
+    function saveToStorage() {
+      localStorage.setItem('tj_inv_v7', JSON.stringify(window.inventory));
+      localStorage.setItem('tj_invoices_v7', JSON.stringify(window.invoicesHistory));
+      localStorage.setItem('tj_fiscal_invoices_v7', JSON.stringify(window.fiscalInvoicesHistory));
+      
+      // NUEVO STORAGE
+      localStorage.setItem('tj_clients_v7', JSON.stringify(window.clients));
+      localStorage.setItem('tj_categories_v7', JSON.stringify(window.categories));
+      localStorage.setItem('tj_suppliers_v7', JSON.stringify(window.suppliers));
+
+      localStorage.setItem('tj_nota_num_v7', window.nextNotaNumber);
+      localStorage.setItem('tj_fiscal_num_v7', window.nextFiscalNumber);
+      localStorage.setItem('tj_prod_num_v7', window.nextProdNum);
+
+      if (window.saveToFirebaseCloud) window.saveToFirebaseCloud();
+    }
+
+    function exportData() {
+      const data = { 
+        inventory: window.inventory, 
+        invoicesHistory: window.invoicesHistory, 
+        fiscalInvoicesHistory: window.fiscalInvoicesHistory,
+        clients: window.clients, // NUEVO
+        categories: window.categories, // NUEVO
+        suppliers: window.suppliers, // NUEVO
+        nextNotaNumber: window.nextNotaNumber, 
+        nextFiscalNumber: window.nextFiscalNumber,
+        nextProdNum: window.nextProdNum, 
+        blockedIPs: getBlockedIPs() 
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `Respaldo_TioJulian_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData() { document.getElementById('importFile').click(); }
+
+    function processImport(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (imported.inventory && imported.invoicesHistory) {
+            window.inventory = imported.inventory;
+            window.invoicesHistory = imported.invoicesHistory;
+            window.fiscalInvoicesHistory = imported.fiscalInvoicesHistory || [];
+            // NUEVO
+            window.clients = imported.clients || [];
+            window.categories = imported.categories || [];
+            window.suppliers = imported.suppliers || [];
+            
+            window.nextNotaNumber = imported.nextNotaNumber || 1;
+            window.nextFiscalNumber = imported.nextFiscalNumber || 1;
+            window.nextProdNum = imported.nextProdNum || 1;
+            if (imported.blockedIPs) saveBlockedIPs(imported.blockedIPs);
+
+            saveToStorage();
+            renderAll();
+            alert("¡Datos importados con éxito!");
+          } else {
+            alert("El archivo no es válido.");
+          }
+        } catch(err) {
+          alert("Error al procesar el archivo.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    checkPublicRoute();
   </script>
 </body>
 </html>
