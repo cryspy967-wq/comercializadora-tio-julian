@@ -250,7 +250,6 @@
           <li><a href="#" id="m-hist" onclick="showTab('hist')">📂 Notas Guardadas</a></li>
           <li><a href="#" id="m-sales" onclick="showTab('sales')">📈 Ventas Diarias</a></li>
           <li><a href="#" id="m-sec" onclick="showTab('sec')">🛡️ Seguridad / IPs</a></li>
-          <!-- Nuevos módulos inyectados -->
           <li><a href="#" id="m-clients" onclick="showTab('clients')">👥 Clientes</a></li>
           <li><a href="#" id="m-cats" onclick="showTab('cats')">🏷️ Categorías</a></li>
           <li><a href="#" id="m-supp" onclick="showTab('supp')">🚚 Proveedores</a></li>
@@ -609,10 +608,20 @@
       <div id="sec-clients" style="display:none;">
         <h1 style="margin-bottom:10px;">👥 Gestión de Clientes</h1>
         <div class="card">
-          <input type="text" id="in-client" class="input-sys" placeholder="Nombre del Cliente">
-          <button onclick="saveClient()" class="btn-primary" style="margin-top:10px;">Guardar Cliente</button>
+          <div class="grid-2">
+            <input type="text" id="in-client-name" class="input-sys" placeholder="Nombre / Razón Social">
+            <input type="text" id="in-client-rif" class="input-sys" placeholder="Cédula o RIF">
+            <input type="text" id="in-client-dir" class="input-sys" placeholder="Dirección">
+            <input type="text" id="in-client-tel" class="input-sys" placeholder="Teléfono">
+          </div>
+          <button onclick="saveClient()" class="btn-primary" style="margin-top:15px;">Guardar Cliente</button>
         </div>
-        <div class="card"><table class="table-sys"><tbody id="list-clients"></tbody></table></div>
+        <div class="card"><table class="table-sys">
+          <thead>
+            <tr><th>Nombre</th><th>Cédula/RIF</th><th>Dirección</th><th>Teléfono</th></tr>
+          </thead>
+          <tbody id="list-clients"></tbody>
+        </table></div>
       </div>
 
       <!-- SECCIÓN CATEGORÍAS -->
@@ -1290,11 +1299,25 @@
     }
 
     // Funciones nuevas para módulos
-    function saveClient(){ let v = document.getElementById('in-client').value; if(v){ window.clientsData.push(v); document.getElementById('in-client').value=''; saveToStorage(); renderC(); } }
+    function saveClient(){ 
+      let n = document.getElementById('in-client-name').value;
+      let r = document.getElementById('in-client-rif').value;
+      let d = document.getElementById('in-client-dir').value;
+      let t = document.getElementById('in-client-tel').value;
+      if(n){ 
+        window.clientsData.push({n, r, d, t}); 
+        document.getElementById('in-client-name').value=''; 
+        document.getElementById('in-client-rif').value='';
+        document.getElementById('in-client-dir').value='';
+        document.getElementById('in-client-tel').value='';
+        saveToStorage(); 
+        renderC(); 
+      } 
+    }
     function saveCat(){ let v = document.getElementById('in-cat').value; if(v){ window.catsData.push(v); document.getElementById('in-cat').value=''; saveToStorage(); renderCat(); } }
     function saveSupp(){ let v = document.getElementById('in-supp').value; if(v){ window.suppData.push(v); document.getElementById('in-supp').value=''; saveToStorage(); renderSupp(); } }
 
-    function renderC() { document.getElementById('list-clients').innerHTML = window.clientsData.map(i => `<tr><td>${i}</td></tr>`).join(''); }
+    function renderC() { document.getElementById('list-clients').innerHTML = window.clientsData.map(i => `<tr><td>${i.n}</td><td>${i.r}</td><td>${i.d}</td><td>${i.t}</td></tr>`).join(''); }
     function renderCat() { document.getElementById('list-cats').innerHTML = window.catsData.map(i => `<tr><td>${i}</td></tr>`).join(''); }
     function renderSupp() { document.getElementById('list-supp').innerHTML = window.suppData.map(i => `<tr><td>${i}</td></tr>`).join(''); }
 
