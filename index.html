@@ -22,7 +22,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-main); color: var(--text); font-size: 0.88rem; min-height: 100vh; display: flex; overflow: hidden; }
 
-    /* PÁGINA PÚBLICA DE VERIFICACIÓN QR */
+    /* PÁGINA PÚBLICA DE VERIFICACIÓN QR (PANTALLA COMPLETA AISLADA) */
     #public-qr-screen {
       display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: #f8fafc; z-index: 10000; padding: 20px; flex-direction: column; align-items: center; justify-content: center;
@@ -49,7 +49,7 @@
 
     /* LAYOUT APLICACIÓN */
     #app-container { display: none; width: 100%; height: 100vh; flex-direction: row; }
-    aside { width: 250px; background: #ffffff; border-right: 1px solid var(--border); padding: 25px 20px; display: flex; flex-direction: column; gap: 25px; }
+    aside { width: 250px; background: #ffffff; border-right: 1px solid var(--border); padding: 25px 20px; display: flex; flex-direction: column; gap: 20px; }
     .brand { font-size: 1.15rem; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 10px; }
     
     nav ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
@@ -102,7 +102,7 @@
 </head>
 <body>
 
-  <!-- APARTADO PÚBLICO: VERIFICACIÓN QR -->
+  <!-- VISTA PÚBLICA PARA ESCANEO QR (PRIVADA Y AISLADA SIN ENLACES A LOGIN) -->
   <div id="public-qr-screen">
     <div class="public-card">
       <h2 style="color:var(--accent); margin-bottom:5px;">Comercializadora Tío Julián</h2>
@@ -112,11 +112,9 @@
       <div id="qr-result-box" style="text-align:left; line-height:1.6; font-size:0.9rem;">
         <p><strong>Estado:</strong> <span style="color:var(--success); font-weight:bold;">✔ Documento Válido</span></p>
         <p><strong>Nº Nota de Entrega:</strong> <span id="pub-num">---</span></p>
-        <p><strong>Monto Total COP:</strong> <span id="pub-monto">---</span></p>
+        <p><strong>Monto Total USD:</strong> <span id="pub-monto">---</span></p>
         <p><strong>Fecha de Emisión:</strong> <span id="pub-fecha">---</span></p>
       </div>
-      <br>
-      <a href="javascript:void(0)" onclick="location.hash=''" style="font-size:0.8rem; color:var(--text-muted);">Ir al Inicio</a>
     </div>
   </div>
 
@@ -153,8 +151,12 @@
           <li><a href="#" id="m-sales" onclick="showTab('sales')">📈 Ventas Diarias</a></li>
         </ul>
       </nav>
-      <div style="margin-top:auto;">
-        <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.85rem; font-weight:700;">
+
+      <div style="margin-top:auto; display:flex; flex-direction:column; gap:8px;">
+        <button onclick="exportData()" class="btn-primary" style="background:#475569; font-size:0.75rem; padding:8px;">💾 Resp. Copia de Datos</button>
+        <button onclick="importData()" class="btn-primary" style="background:#64748b; font-size:0.75rem; padding:8px;">📂 Cargar Copia de Datos</button>
+        <input type="file" id="importFile" style="display:none;" onchange="processImport(event)">
+        <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.85rem; font-weight:700; margin-top:5px;">
           🚪 Salir
         </button>
       </div>
@@ -175,7 +177,7 @@
             <h2 id="dash-stock" style="font-size:2rem; margin-top:5px; color:var(--success);">0</h2>
           </div>
           <div class="card">
-            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">VALOR INVENTARIO (COP)</span>
+            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">VALOR INVENTARIO (USD)</span>
             <h2 id="dash-val" style="font-size:2rem; margin-top:5px; color:var(--accent);">$0.00</h2>
           </div>
         </div>
@@ -198,12 +200,12 @@
               <input type="text" id="pDesc" class="input-sys" placeholder="Nombre del artículo">
             </div>
             <div>
-              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 1 DETAL (COP)</label>
-              <input type="number" id="pPrice1" class="input-sys" placeholder="0.00">
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 1 DETAL ($ USD)</label>
+              <input type="number" id="pPrice1" class="input-sys" placeholder="0.00" step="0.01">
             </div>
             <div>
-              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 2 MAYOR (COP)</label>
-              <input type="number" id="pPrice2" class="input-sys" placeholder="0.00">
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 2 MAYOR ($ USD)</label>
+              <input type="number" id="pPrice2" class="input-sys" placeholder="0.00" step="0.01">
             </div>
             <div>
               <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">STOCK INICIAL</label>
@@ -230,8 +232,8 @@
                 <th>Descripción</th>
                 <th>Impuesto</th>
                 <th>Stock (Quedan / Inicial)</th>
-                <th>Precio 1 - Detal (COP)</th>
-                <th>Precio 2 - Mayor (COP)</th>
+                <th>Precio 1 - Detal (USD)</th>
+                <th>Precio 2 - Mayor (USD)</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -275,19 +277,24 @@
             <input type="text" id="fInputPhone" class="input-sys" placeholder="Teléfono de Contacto" oninput="updateFactura()">
           </div>
 
-          <h3 style="font-size:0.9rem; margin:15px 0 10px 0;">Montos Manuales en Otras Monedas</h3>
+          <h3 style="font-size:0.9rem; margin:15px 0 10px 0;">Ingreso Manual de Totales Equivalentes</h3>
           <div class="grid-2" style="margin-bottom:15px;">
             <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE USD (MANUAL)</label>
-              <input type="number" id="fManualUsd" class="input-sys" placeholder="0.00" step="0.01" oninput="updateFactura()">
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE PESOS (COP MANUAL)</label>
+              <input type="number" id="fManualCop" class="input-sys" placeholder="0.00" step="0.01" oninput="updateFactura()">
             </div>
             <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE BS (MANUAL)</label>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE BOLÍVARES (BS MANUAL)</label>
               <input type="number" id="fManualBs" class="input-sys" placeholder="0.00" step="0.01" oninput="updateFactura()">
             </div>
           </div>
 
           <h3 style="font-size:0.9rem; margin-bottom:10px;">Añadir Ítem a la Nota</h3>
+          
+          <div style="margin-bottom: 10px;">
+            <input type="text" id="posProductSearch" class="input-sys" placeholder="🔍 Buscar producto por código o nombre..." oninput="filterPosProducts()" style="border-color: var(--accent); background: #ffffff;">
+          </div>
+
           <div style="display:flex; gap:10px;">
             <select id="pSelect" class="input-sys" style="flex:2;"></select>
             <select id="priceType" class="input-sys" style="flex:1;">
@@ -299,7 +306,7 @@
           </div>
         </div>
 
-        <!-- HOJA DE IMPRESIÓN (DOS COPIAS MEDIA CARTA) -->
+        <!-- HOJA DE IMPRESIÓN -->
         <div class="print-sheet">
           <!-- COPIA 1 -->
           <div class="invoice-preview">
@@ -343,13 +350,13 @@
               </div>
 
               <div class="doc-totals">
-                <div>EXENTO (0%): <span class="lbl-exempt">0.00</span> COP</div>
-                <div>BASE IMPONIBLE: <span class="lbl-sub">0.00</span> COP</div>
-                <div>I.V.A. (16%): <span class="lbl-iva">0.00</span> COP</div>
+                <div>EXENTO (0%): $<span class="lbl-exempt">0.00</span></div>
+                <div>BASE IMPONIBLE: $<span class="lbl-sub">0.00</span></div>
+                <div>I.V.A. (16%): $<span class="lbl-iva">0.00</span></div>
                 <div style="font-size:0.85rem; font-weight:900; border-top:1px solid #000; padding-top:2px;">
-                  TOTAL COP: <span class="lbl-total-cop">0.00</span>
+                  TOTAL USD: $<span class="lbl-total-usd">0.00</span>
                 </div>
-                <div style="font-size:0.75rem;">TOTAL USD: $<span class="lbl-total-usd">0.00</span></div>
+                <div style="font-size:0.75rem;">TOTAL COP: $<span class="lbl-total-cop">0.00</span> COP</div>
                 <div style="font-size:0.75rem;">TOTAL BS: <span class="lbl-total-bs">0.00</span> Bs.</div>
               </div>
             </div>
@@ -397,13 +404,13 @@
               </div>
 
               <div class="doc-totals">
-                <div>EXENTO (0%): <span class="lbl-exempt">0.00</span> COP</div>
-                <div>BASE IMPONIBLE: <span class="lbl-sub">0.00</span> COP</div>
-                <div>I.V.A. (16%): <span class="lbl-iva">0.00</span> COP</div>
+                <div>EXENTO (0%): $<span class="lbl-exempt">0.00</span></div>
+                <div>BASE IMPONIBLE: $<span class="lbl-sub">0.00</span></div>
+                <div>I.V.A. (16%): $<span class="lbl-iva">0.00</span></div>
                 <div style="font-size:0.85rem; font-weight:900; border-top:1px solid #000; padding-top:2px;">
-                  TOTAL COP: <span class="lbl-total-cop">0.00</span>
+                  TOTAL USD: $<span class="lbl-total-usd">0.00</span>
                 </div>
-                <div style="font-size:0.75rem;">TOTAL USD: $<span class="lbl-total-usd">0.00</span></div>
+                <div style="font-size:0.75rem;">TOTAL COP: $<span class="lbl-total-cop">0.00</span> COP</div>
                 <div style="font-size:0.75rem;">TOTAL BS: <span class="lbl-total-bs">0.00</span> Bs.</div>
               </div>
             </div>
@@ -422,8 +429,8 @@
                 <th>Nº Nota</th>
                 <th>Fecha Emisión</th>
                 <th>Cliente</th>
-                <th>Total COP</th>
                 <th>Total USD</th>
+                <th>Total COP</th>
                 <th>Total BS</th>
                 <th>Acciones</th>
               </tr>
@@ -453,11 +460,11 @@
               <h3 id="salesCount" style="font-size:1.5rem;">0</h3>
             </div>
             <div>
-              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">TOTAL RECAUDADO COP</span>
-              <h3 id="salesTotalCop" style="font-size:1.5rem; color:var(--success);">$0.00</h3>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">TOTAL RECAUDADO USD</span>
+              <h3 id="salesTotalUsd" style="font-size:1.5rem; color:var(--success);">$0.00 USD</h3>
             </div>
             <div>
-              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">TOTAL ESTIMADO USD / BS</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">TOTAL ESTIMADO COP / BS</span>
               <h3 id="salesTotalAlt" style="font-size:1.1rem;">$0.00 / 0.00 Bs</h3>
             </div>
           </div>
@@ -466,10 +473,8 @@
             <thead>
               <tr>
                 <th>Nº Nota</th>
-                <th>Cliente</th>
-                <th>Monto COP</th>
-                <th>Monto USD</th>
-                <th>Monto BS</th>
+                <th>Detalle de Productos Vendidos (Cant. x Precio)</th>
+                <th>Total Nota ($ USD)</th>
               </tr>
             </thead>
             <tbody id="salesTable"></tbody>
@@ -481,17 +486,19 @@
   </div>
 
   <script>
-    // GENERADOR QR OFFLINE EN SVG PURO
+    // URL DEL SITIO EN GAMMA
+    const GAMMA_SITE_URL = "https://comercializadoratiojulia-w8lw1af.gamma.site/";
+
     function generateOfflineQR(text) {
       const encodedText = encodeURIComponent(text);
       return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=55x55&data=${encodedText}" alt="QR" width="55" height="55" />`;
     }
 
-    // BASE DE DATOS PERSISTENTE EN LOCALSTORAGE
-    let inventory = JSON.parse(localStorage.getItem('tj_inv_v6')) || [];
-    let invoicesHistory = JSON.parse(localStorage.getItem('tj_invoices_v6')) || [];
-    let nextNotaNumber = parseInt(localStorage.getItem('tj_nota_num_v6')) || 1;
-    let nextProdNum = parseInt(localStorage.getItem('tj_prod_num_v6')) || 1;
+    // BASE DE DATOS LOCAL
+    let inventory = JSON.parse(localStorage.getItem('tj_inv_v7')) || [];
+    let invoicesHistory = JSON.parse(localStorage.getItem('tj_invoices_v7')) || [];
+    let nextNotaNumber = parseInt(localStorage.getItem('tj_nota_num_v7')) || 1;
+    let nextProdNum = parseInt(localStorage.getItem('tj_prod_num_v7')) || 1;
     let cart = [];
 
     // ENRUTADOR RÁPIDO PARA QR PÚBLICO
@@ -503,7 +510,7 @@
         const fecha = params.get('fecha');
 
         document.getElementById('pub-num').innerText = num || 'Desconocido';
-        document.getElementById('pub-monto').innerText = monto ? `$${parseFloat(monto).toLocaleString()} COP` : '---';
+        document.getElementById('pub-monto').innerText = monto ? `$${parseFloat(monto).toFixed(2)} USD` : '---';
         document.getElementById('pub-fecha').innerText = fecha || '---';
 
         document.getElementById('public-qr-screen').style.display = 'flex';
@@ -582,13 +589,12 @@
       const stock = parseInt(document.getElementById('pStock').value) || 0;
       const hasIva = document.getElementById('pHasIva').checked;
 
-      if(!desc || isNaN(p1)) return alert("Por favor escriba la descripción y el Precio 1.");
+      if(!desc || isNaN(p1)) return alert("Por favor escriba la descripción y el Precio 1 en USD.");
 
       inventory.push({ code, desc, p1, p2, hasIva, initialStock: stock, currentStock: stock });
       nextProdNum++;
       
-      localStorage.setItem('tj_inv_v6', JSON.stringify(inventory));
-      localStorage.setItem('tj_prod_num_v6', nextProdNum);
+      saveToStorage();
 
       document.getElementById('pDesc').value = '';
       document.getElementById('pPrice1').value = '';
@@ -602,8 +608,26 @@
     function deleteProduct(idx) {
       if(confirm("¿Eliminar este producto?")) {
         inventory.splice(idx, 1);
-        localStorage.setItem('tj_inv_v6', JSON.stringify(inventory));
+        saveToStorage();
         renderAll();
+      }
+    }
+
+    function filterPosProducts() {
+      const query = document.getElementById('posProductSearch').value.toLowerCase().trim();
+      const pSelect = document.getElementById('pSelect');
+      pSelect.innerHTML = '';
+
+      let matches = 0;
+      inventory.forEach((item, idx) => {
+        if (item.code.toLowerCase().includes(query) || item.desc.toLowerCase().includes(query)) {
+          pSelect.innerHTML += `<option value="${idx}">${item.code} — ${item.desc} (Quedan: ${item.currentStock})</option>`;
+          matches++;
+        }
+      });
+
+      if (matches === 0) {
+        pSelect.innerHTML = `<option value="">Sin coincidencias para "${query}"</option>`;
       }
     }
 
@@ -612,7 +636,7 @@
       const pType = document.getElementById('priceType').value;
       const qty = parseFloat(document.getElementById('pQty').value);
 
-      if(!inventory[idx]) return alert("Seleccione un producto válido");
+      if(idx === "" || !inventory[idx]) return alert("Seleccione un producto válido");
       if(isNaN(qty) || qty <= 0) return alert("Cantidad no válida");
 
       const item = inventory[idx];
@@ -624,9 +648,11 @@
       const selectedPrice = pType === '1' ? item.p1 : item.p2;
 
       item.currentStock -= qty;
-      localStorage.setItem('tj_inv_v6', JSON.stringify(inventory));
+      saveToStorage();
 
       cart.push({ code: item.code, desc: item.desc, qty, price: selectedPrice, hasIva: item.hasIva });
+      
+      document.getElementById('posProductSearch').value = '';
       renderAll();
     }
 
@@ -634,8 +660,8 @@
       if (cart.length === 0) return alert("Añada al menos un producto antes de guardar e imprimir.");
 
       const numStr = document.getElementById('fInputNum').value;
-      const totalCop = parseFloat(document.querySelector('.lbl-total-cop').innerText.replace(/,/g, '')) || 0;
-      const totalUsd = parseFloat(document.getElementById('fManualUsd').value) || 0;
+      const totalUsd = parseFloat(document.querySelector('.lbl-total-usd').innerText.replace(/,/g, '')) || 0;
+      const totalCop = parseFloat(document.getElementById('fManualCop').value) || 0;
       const totalBs = parseFloat(document.getElementById('fManualBs').value) || 0;
 
       const notaData = {
@@ -647,28 +673,29 @@
         rif: document.getElementById('fInputRif').value || 'V-00000000',
         phone: document.getElementById('fInputPhone').value || 'S/T',
         cart: [...cart],
-        totalCop,
         totalUsd,
+        totalCop,
         totalBs
       };
 
       invoicesHistory.push(notaData);
-      localStorage.setItem('tj_invoices_v6', JSON.stringify(invoicesHistory));
+      saveToStorage();
 
       window.print();
     }
 
     function nuevaFactura() {
       nextNotaNumber++;
-      localStorage.setItem('tj_nota_num_v6', nextNotaNumber);
+      saveToStorage();
       cart = [];
       
       document.getElementById('fInputName').value = '';
       document.getElementById('fInputDir').value = '';
       document.getElementById('fInputRif').value = '';
       document.getElementById('fInputPhone').value = '';
-      document.getElementById('fManualUsd').value = '';
+      document.getElementById('fManualCop').value = '';
       document.getElementById('fManualBs').value = '';
+      document.getElementById('posProductSearch').value = '';
       
       initDates();
       renderAll();
@@ -691,10 +718,10 @@
       document.querySelectorAll('.lbl-frif').forEach(el => el.innerText = rif);
       document.querySelectorAll('.lbl-fphone').forEach(el => el.innerText = phone);
 
-      const manualUsd = parseFloat(document.getElementById('fManualUsd').value) || 0;
+      const manualCop = parseFloat(document.getElementById('fManualCop').value) || 0;
       const manualBs = parseFloat(document.getElementById('fManualBs').value) || 0;
 
-      document.querySelectorAll('.lbl-total-usd').forEach(el => el.innerText = manualUsd.toLocaleString('en-US', {minimumFractionDigits: 2}));
+      document.querySelectorAll('.lbl-total-cop').forEach(el => el.innerText = manualCop.toLocaleString('en-US', {minimumFractionDigits: 2}));
       document.querySelectorAll('.lbl-total-bs').forEach(el => el.innerText = manualBs.toLocaleString('en-US', {minimumFractionDigits: 2}));
     }
 
@@ -720,8 +747,8 @@
                   ${item.currentStock} disponibles
                 </span>
               </td>
-              <td><strong>$${item.p1.toLocaleString()} COP</strong></td>
-              <td><strong>$${item.p2.toLocaleString()} COP</strong></td>
+              <td><strong>$${item.p1.toFixed(2)} USD</strong></td>
+              <td><strong>$${item.p2.toFixed(2)} USD</strong></td>
               <td>
                 <button onclick="deleteProduct(${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:700;">Eliminar</button>
               </td>
@@ -752,8 +779,8 @@
             <td>${item.desc}</td>
             <td style="text-align:center;">${item.hasIva ? 'G' : 'E'}</td>
             <td style="text-align:right;">${item.qty.toFixed(2)}</td>
-            <td style="text-align:right;">${item.price.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-            <td style="text-align:right;">${itemTotal.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td style="text-align:right;">${item.price.toFixed(2)}</td>
+            <td style="text-align:right;">${itemTotal.toFixed(2)}</td>
           </tr>
         `;
         tbodies.forEach(tb => tb.innerHTML += rowHTML);
@@ -763,14 +790,13 @@
       const iva = baseImponibleTotal - baseImponible;
       const grandTotal = baseExempt + baseImponibleTotal;
 
-      document.querySelectorAll('.lbl-exempt').forEach(el => el.innerText = baseExempt.toLocaleString('en-US', {minimumFractionDigits: 2}));
-      document.querySelectorAll('.lbl-sub').forEach(el => el.innerText = baseImponible.toLocaleString('en-US', {minimumFractionDigits: 2}));
-      document.querySelectorAll('.lbl-iva').forEach(el => el.innerText = iva.toLocaleString('en-US', {minimumFractionDigits: 2}));
-      document.querySelectorAll('.lbl-total-cop').forEach(el => el.innerText = grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2}));
+      document.querySelectorAll('.lbl-exempt').forEach(el => el.innerText = baseExempt.toFixed(2));
+      document.querySelectorAll('.lbl-sub').forEach(el => el.innerText = baseImponible.toFixed(2));
+      document.querySelectorAll('.lbl-iva').forEach(el => el.innerText = iva.toFixed(2));
+      document.querySelectorAll('.lbl-total-usd').forEach(el => el.innerText = grandTotal.toFixed(2));
 
-      // URL DEL QR PÚBLICO
-      const currentOrigin = window.location.href.split('#')[0];
-      const qrPublicUrl = `${currentOrigin}#verificar?num=${document.getElementById('fInputNum').value}&monto=${grandTotal}&fecha=${document.getElementById('fInputEmision').value}`;
+      // QR DIRECCIONADO AL ENLACE GAMMA
+      const qrPublicUrl = `${GAMMA_SITE_URL}#verificar?num=${document.getElementById('fInputNum').value}&monto=${grandTotal.toFixed(2)}&fecha=${document.getElementById('fInputEmision').value}`;
       
       document.querySelectorAll(".qrcode-box").forEach(box => {
         box.innerHTML = generateOfflineQR(qrPublicUrl);
@@ -789,8 +815,8 @@
             <td><strong>${inv.num}</strong></td>
             <td>${inv.emision}</td>
             <td>${inv.client}</td>
-            <td><strong>$${inv.totalCop.toLocaleString()} COP</strong></td>
-            <td>$${inv.totalUsd.toFixed(2)} USD</td>
+            <td><strong>$${inv.totalUsd.toFixed(2)} USD</strong></td>
+            <td>$${inv.totalCop.toLocaleString()} COP</td>
             <td>${inv.totalBs.toFixed(2)} Bs</td>
             <td>
               <button onclick="reimprimirNota('${inv.num}')" style="background:var(--accent); color:#fff; border:none; padding:4px 10px; border-radius:4px; cursor:pointer;">Ver / Imprimir</button>
@@ -811,7 +837,7 @@
       document.getElementById('fInputDir').value = inv.dir;
       document.getElementById('fInputRif').value = inv.rif;
       document.getElementById('fInputPhone').value = inv.phone;
-      document.getElementById('fManualUsd').value = inv.totalUsd;
+      document.getElementById('fManualCop').value = inv.totalCop;
       document.getElementById('fManualBs').value = inv.totalBs;
       
       cart = inv.cart;
@@ -826,28 +852,29 @@
 
       const filtered = invoicesHistory.filter(i => i.emision === selectedDate);
       
-      let totalCop = 0, totalUsd = 0, totalBs = 0;
+      let totalUsd = 0, totalCop = 0, totalBs = 0;
 
       filtered.forEach(inv => {
-        totalCop += inv.totalCop;
         totalUsd += inv.totalUsd;
+        totalCop += inv.totalCop;
         totalBs += inv.totalBs;
+
+        // Desglose de productos vendidos
+        let itemsSummary = inv.cart.map(i => `• ${i.desc} (Cant: ${i.qty} x $${i.price.toFixed(2)} USD)`).join('<br>');
 
         tbody.innerHTML += `
           <tr>
             <td><strong>${inv.num}</strong></td>
-            <td>${inv.client}</td>
-            <td>$${inv.totalCop.toLocaleString()} COP</td>
-            <td>$${inv.totalUsd.toFixed(2)} USD</td>
-            <td>${inv.totalBs.toFixed(2)} Bs</td>
+            <td>${itemsSummary}</td>
+            <td><strong>$${inv.totalUsd.toFixed(2)} USD</strong></td>
           </tr>
         `;
       });
 
       document.getElementById('salesReportTitle').innerText = `Ventas del Día (${selectedDate})`;
       document.getElementById('salesCount').innerText = filtered.length;
-      document.getElementById('salesTotalCop').innerText = '$' + totalCop.toLocaleString('en-US', {minimumFractionDigits:2}) + ' COP';
-      document.getElementById('salesTotalAlt').innerText = `$${totalUsd.toFixed(2)} USD / ${totalBs.toFixed(2)} Bs`;
+      document.getElementById('salesTotalUsd').innerText = '$' + totalUsd.toFixed(2) + ' USD';
+      document.getElementById('salesTotalAlt').innerText = `$${totalCop.toLocaleString()} COP / ${totalBs.toFixed(2)} Bs`;
     }
 
     function renderAll() {
@@ -857,16 +884,66 @@
       document.getElementById('dash-stock').innerText = totalStock;
 
       const totalInvVal = inventory.reduce((acc, i) => acc + (i.p1 * (i.currentStock || 0)), 0);
-      document.getElementById('dash-val').innerText = '$' + totalInvVal.toLocaleString('en-US', {minimumFractionDigits:2});
+      document.getElementById('dash-val').innerText = '$' + totalInvVal.toFixed(2);
 
-      const pSelect = document.getElementById('pSelect');
-      pSelect.innerHTML = '';
-      inventory.forEach((item, idx) => {
-        pSelect.innerHTML += `<option value="${idx}">${item.code} — ${item.desc} (Quedan: ${item.currentStock})</option>`;
-      });
-
+      filterPosProducts();
       renderInventoryTable();
       renderCart();
+    }
+
+    function saveToStorage() {
+      localStorage.setItem('tj_inv_v7', JSON.stringify(inventory));
+      localStorage.setItem('tj_invoices_v7', JSON.stringify(invoicesHistory));
+      localStorage.setItem('tj_nota_num_v7', nextNotaNumber);
+      localStorage.setItem('tj_prod_num_v7', nextProdNum);
+    }
+
+    // EXPORTAR E IMPORTAR DATOS PARA OTRS DISPOSITIVOS
+    function exportData() {
+      const data = {
+        inventory,
+        invoicesHistory,
+        nextNotaNumber,
+        nextProdNum
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `Respaldo_TioJulian_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData() {
+      document.getElementById('importFile').click();
+    }
+
+    function processImport(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (imported.inventory && imported.invoicesHistory) {
+            inventory = imported.inventory;
+            invoicesHistory = imported.invoicesHistory;
+            nextNotaNumber = imported.nextNotaNumber || 1;
+            nextProdNum = imported.nextProdNum || 1;
+
+            saveToStorage();
+            renderAll();
+            alert("¡Datos cargados e importados exitosamente!");
+          } else {
+            alert("El archivo no tiene un formato válido.");
+          }
+        } catch(err) {
+          alert("Error al procesar el archivo.");
+        }
+      };
+      reader.readAsText(file);
     }
 
     // INICIALIZAR VERIFICACIÓN AL CARGAR
