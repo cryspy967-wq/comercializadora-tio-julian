@@ -4,6 +4,82 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Comercializadora Tío Julián - Sistema Administrativo Seguro</title>
+
+  <!-- FIREBASE SDK v10 (NUBE EN TIEMPO REAL) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Configuración con tus claves extraídas de tu consola
+    const firebaseConfig = {
+      apiKey: "AIzaSyBNVANTqoJcSZReqeIkLSv6s9DxU_enWDc",
+      authDomain: "comercializadora-abb0b.firebaseapp.com",
+      projectId: "comercializadora-abb0b",
+      storageBucket: "comercializadora-abb0b.firebasestorage.app",
+      messagingSenderId: "889689655320",
+      appId: "1:889689655320:web:afd3eb509637650a761b6d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const docRef = doc(db, "sistema", "datos_generales");
+
+    let isLocalUpdate = false;
+
+    // Escuchar cambios de la nube en tiempo real
+    onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        if (!isLocalUpdate) {
+          const data = snapshot.data();
+          if (data.inventory) {
+            window.inventory = data.inventory;
+            localStorage.setItem('tj_inv_v7', JSON.stringify(data.inventory));
+          }
+          if (data.invoicesHistory) {
+            window.invoicesHistory = data.invoicesHistory;
+            localStorage.setItem('tj_invoices_v7', JSON.stringify(data.invoicesHistory));
+          }
+          if (data.nextNotaNumber) {
+            window.nextNotaNumber = data.nextNotaNumber;
+            localStorage.setItem('tj_nota_num_v7', data.nextNotaNumber);
+          }
+          if (data.nextProdNum) {
+            window.nextProdNum = data.nextProdNum;
+            localStorage.setItem('tj_prod_num_v7', data.nextProdNum);
+          }
+          if (data.blockedIPs && window.saveBlockedIPs) {
+            window.saveBlockedIPs(data.blockedIPs);
+          }
+          
+          if (window.renderAll) window.renderAll();
+          if (window.initDates) window.initDates();
+        }
+        isLocalUpdate = false;
+      } else {
+        window.saveToFirebaseCloud();
+      }
+    }, (error) => {
+      console.error("Error conectando a Firebase Firestore:", error);
+    });
+
+    // Función para guardar en la nube
+    window.saveToFirebaseCloud = async function() {
+      try {
+        isLocalUpdate = true;
+        const payload = {
+          inventory: window.inventory || [],
+          invoicesHistory: window.invoicesHistory || [],
+          nextNotaNumber: window.nextNotaNumber || 1,
+          nextProdNum: window.nextProdNum || 1,
+          blockedIPs: (typeof getBlockedIPs === 'function') ? getBlockedIPs() : {}
+        };
+        await setDoc(docRef, payload);
+      } catch (err) {
+        console.error("Error guardando datos en la nube:", err);
+      }
+    };
+  </script>
+
   <style>
     :root {
       --bg-main: #f0f7ff;
@@ -22,10 +98,10 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-main); color: var(--text); font-size: 0.88rem; min-height: 100vh; display: flex; overflow: hidden; }
 
-    /* PÁGINA PÚBLICA DE VERIFICACIÓN QR (Completamente aislada) */
+    /* PÁGINA PÚBLICA DE VERIFICACIÓN QR */
     #public-qr-screen {
       display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #f8fafc; z-index: 99999; padding: 20px; flex-direction: column; align-items: center; justify-content: center;
+      background: #f8fafc; z-index: 10000; padding: 20px; flex-direction: column; align-items: center; justify-content: center;
     }
     .public-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 30px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; }
 
@@ -111,7 +187,7 @@
 </head>
 <body>
 
-  <!-- PANTALLA PÚBLICA DE VERIFICACIÓN QR (Aislada, sin menús ni login) -->
+  <!-- PANTALLA PÚBLICA DE VERIFICACIÓN QR -->
   <div id="public-qr-screen">
     <div class="public-card">
       <h2 style="color:var(--accent); margin-bottom:5px;">Comercializadora Tío Julián</h2>
@@ -134,8 +210,8 @@
       <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px;">Acceso Restringido al Sistema</p>
 
       <div id="ipBlockedMessage" class="blocked-banner">
-        🚨 IP / DISPOSITIVO BLOQUEADO POR SEGURIDAD<br>
-        Se han detectado más de 4 intentos fallidos desde este equipo. Póngase en contacto con el administrador para solicitar el desbloqueo.
+        🚨 IP BLOQUEADA POR SEGURIDAD<br>
+        Se han detectado más de 4 intentos fallidos desde este dispositivo. Póngase en contacto con el administrador para solicitar el desbloqueo.
       </div>
       
       <form id="loginForm" onsubmit="login(event)" autocomplete="off">
@@ -445,20 +521,20 @@
       <!-- MÓDULO DE SEGURIDAD / DESBLOQUEO DE IPS -->
       <div id="sec-sec" style="display:none;">
         <h1 style="margin-bottom:10px; color:var(--danger);">🛡️ Escudo de Seguridad & Registro de Bloqueos</h1>
-        <p style="color:var(--text-muted); margin-bottom:20px;">Monitoreo en tiempo real de direcciones IP y dispositivos bloqueados por superar 4 intentos fallidos de inicio de sesión.</p>
+        <p style="color:var(--text-muted); margin-bottom:20px;">Monitoreo en tiempo real de direcciones IP bloqueadas por superar 4 intentos fallidos de inicio de sesión.</p>
 
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3>Dispositivos e IPs Registradas</h3>
+            <h3>Dispositivos e IPs Bloqueados</h3>
             <button onclick="clearAllSecurityLogs()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:bold;">Restablecer Todo</button>
           </div>
 
           <table class="table-sys">
             <thead>
               <tr>
-                <th>Dirección IP / Identificador</th>
-                <th>Dispositivo / Navegador</th>
-                <th>Fecha y Hora de Intento</th>
+                <th>Dirección IP Detectada</th>
+                <th>Dispositivo / Navegador Atacante</th>
+                <th>Fecha y Hora del Intentos</th>
                 <th>Intentos Fallidos</th>
                 <th>Estado</th>
                 <th>Acción</th>
@@ -473,24 +549,17 @@
   </div>
 
   <script>
-    const GAMMA_SITE_URL = window.location.origin + window.location.pathname;
+    const GAMMA_SITE_URL = "https://comercializadoratiojulia-w8lw1af.gamma.site/";
 
     // -------------------------------------------------------------------
-    // FIREWALL Y SISTEMA DE SEGURIDAD ANTI-HACKEO DE IP DETECTADA MEJORADO
+    // FIREWALL Y SISTEMA DE SEGURIDAD ANTI-HACKEO DE IP
     // -------------------------------------------------------------------
-    let userIP = "Local (192.168.1." + Math.floor(Math.random() * 50 + 10) + ")";
+    let userIP = "192.168.1.100";
     
-    // Intenta obtener IP real mediante API publica, o asigna ID persistente por dispositivo
     fetch('https://api.ipify.org?format=json')
       .then(res => res.json())
       .then(data => { userIP = data.ip; checkIPStatus(); })
-      .catch(() => { 
-        if(!localStorage.getItem('tj_device_id')) {
-          localStorage.setItem('tj_device_id', "DEV-IP-" + Math.floor(1000 + Math.random() * 9000));
-        }
-        userIP = localStorage.getItem('tj_device_id');
-        checkIPStatus(); 
-      });
+      .catch(() => { checkIPStatus(); });
 
     function getDeviceDescription() {
       const ua = navigator.userAgent;
@@ -516,11 +585,9 @@
     function saveBlockedIPs(data) {
       localStorage.setItem('tj_blocked_ips', JSON.stringify(data));
     }
+    window.saveBlockedIPs = saveBlockedIPs;
 
     function checkIPStatus() {
-      // Revisa el estado si la solicitud es una vista normal y no del QR
-      if (window.location.hash.startsWith('#verificar')) return;
-
       const blocked = getBlockedIPs();
       const current = blocked[userIP];
 
@@ -547,6 +614,7 @@
       blocked[userIP].attempts += 1;
       blocked[userIP].lastDate = new Date().toLocaleString();
       saveBlockedIPs(blocked);
+      if (window.saveToFirebaseCloud) window.saveToFirebaseCloud();
 
       const remaining = 4 - blocked[userIP].attempts;
       const counterEl = document.getElementById('attemptCounter');
@@ -564,6 +632,7 @@
       if (blocked[ipToUnblock]) {
         delete blocked[ipToUnblock];
         saveBlockedIPs(blocked);
+        if (window.saveToFirebaseCloud) window.saveToFirebaseCloud();
         renderSecurityTable();
         checkIPStatus();
         alert(`La IP ${ipToUnblock} ha sido desbloqueada exitosamente.`);
@@ -571,8 +640,9 @@
     }
 
     function clearAllSecurityLogs() {
-      if (confirm("¿Desbloquear todas las IPs y limpiar registros de seguridad?")) {
+      if (confirm("¿Desbloquear todas las IPs registradas?")) {
         localStorage.removeItem('tj_blocked_ips');
+        if (window.saveToFirebaseCloud) window.saveToFirebaseCloud();
         renderSecurityTable();
         checkIPStatus();
       }
@@ -585,7 +655,7 @@
 
       const keys = Object.keys(blocked);
       if (keys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding: 15px;">No hay registros de intentos fallidos o IPs bloqueadas. El sistema está seguro.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No hay IPs bloqueadas por el momento. El sistema está seguro.</td></tr>`;
         return;
       }
 
@@ -645,10 +715,10 @@
     }
 
     const { inv: initialInv, hist: initialHist } = loadStorageWithBackup();
-    let inventory = initialInv;
-    let invoicesHistory = initialHist;
-    let nextNotaNumber = parseInt(localStorage.getItem('tj_nota_num_v7')) || 1;
-    let nextProdNum = parseInt(localStorage.getItem('tj_prod_num_v7')) || (inventory.length + 1);
+    window.inventory = initialInv;
+    window.invoicesHistory = initialHist;
+    window.nextNotaNumber = parseInt(localStorage.getItem('tj_nota_num_v7')) || 1;
+    window.nextProdNum = parseInt(localStorage.getItem('tj_prod_num_v7')) || (window.inventory.length + 1);
     let cart = [];
 
     saveToStorage();
@@ -664,13 +734,9 @@
         document.getElementById('pub-monto').innerText = monto ? `$${parseFloat(monto).toFixed(2)} USD` : '---';
         document.getElementById('pub-fecha').innerText = fecha || '---';
 
-        // Oculta completamente la interfaz del sistema y muestra solo la pantalla pública
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-container').style.display = 'none';
         document.getElementById('public-qr-screen').style.display = 'flex';
       } else {
         document.getElementById('public-qr-screen').style.display = 'none';
-        checkIPStatus();
       }
     }
     window.addEventListener('hashchange', checkPublicRoute);
@@ -681,15 +747,16 @@
       document.getElementById('fInputEmision').value = todayStr;
       document.getElementById('salesDateFilter').value = todayStr;
       
-      const formattedNum = String(nextNotaNumber).padStart(7, '0');
+      const formattedNum = String(window.nextNotaNumber).padStart(7, '0');
       document.getElementById('fInputNum').value = formattedNum;
 
       updateAutoProdCode();
       autoCalculateExpiry();
     }
+    window.initDates = initDates;
 
     function updateAutoProdCode() {
-      const codeStr = "PROD-" + String(nextProdNum).padStart(4, '0');
+      const codeStr = "PROD-" + String(window.nextProdNum).padStart(4, '0');
       document.getElementById('pCode').value = codeStr;
     }
 
@@ -754,8 +821,8 @@
 
       if(!desc || isNaN(p1)) return alert("Por favor escriba la descripción y el Precio 1 en USD.");
 
-      inventory.push({ code, desc, p1, p2, hasIva, initialStock: stock, currentStock: stock });
-      nextProdNum++;
+      window.inventory.push({ code, desc, p1, p2, hasIva, initialStock: stock, currentStock: stock });
+      window.nextProdNum++;
       
       saveToStorage();
 
@@ -770,7 +837,7 @@
 
     function deleteProduct(idx) {
       if(confirm("¿Eliminar este producto?")) {
-        inventory.splice(idx, 1);
+        window.inventory.splice(idx, 1);
         saveToStorage();
         renderAll();
       }
@@ -784,7 +851,7 @@
       pSelect.innerHTML = '';
 
       let matches = 0;
-      inventory.forEach((item, idx) => {
+      window.inventory.forEach((item, idx) => {
         if (item.code.toLowerCase().includes(query) || item.desc.toLowerCase().includes(query)) {
           pSelect.innerHTML += `<option value="${idx}">${item.code} — ${item.desc} (Stock: ${item.currentStock})</option>`;
           matches++;
@@ -807,10 +874,10 @@
       const pType = document.getElementById('priceType').value;
       const qty = parseFloat(document.getElementById('pQty').value);
 
-      if(idx === "" || !inventory[idx]) return alert("Seleccione un producto válido");
+      if(idx === "" || !window.inventory[idx]) return alert("Seleccione un producto válido");
       if(isNaN(qty) || qty <= 0) return alert("Cantidad no válida");
 
-      const item = inventory[idx];
+      const item = window.inventory[idx];
 
       if (qty > item.currentStock) {
         return alert(`Stock insuficiente. Quedan ${item.currentStock} unidades.`);
@@ -850,14 +917,14 @@
         totalBs
       };
 
-      invoicesHistory.push(notaData);
+      window.invoicesHistory.push(notaData);
       saveToStorage();
 
       window.print();
     }
 
     function nuevaFactura() {
-      nextNotaNumber++;
+      window.nextNotaNumber++;
       saveToStorage();
       cart = [];
       
@@ -903,7 +970,7 @@
 
       invTbody.innerHTML = '';
 
-      inventory.forEach((item, idx) => {
+      window.inventory.forEach((item, idx) => {
         if(item.desc.toLowerCase().includes(filter) || item.code.toLowerCase().includes(filter)) {
           invTbody.innerHTML += `
             <tr>
@@ -981,7 +1048,7 @@
       const tbody = document.getElementById('histTable');
       tbody.innerHTML = '';
 
-      invoicesHistory.slice().reverse().forEach(inv => {
+      window.invoicesHistory.slice().reverse().forEach(inv => {
         tbody.innerHTML += `
           <tr>
             <td><strong>${inv.num}</strong></td>
@@ -999,7 +1066,7 @@
     }
 
     function reimprimirNota(num) {
-      const inv = invoicesHistory.find(i => i.num === num);
+      const inv = window.invoicesHistory.find(i => i.num === num);
       if(!inv) return;
 
       document.getElementById('fInputNum').value = inv.num;
@@ -1022,7 +1089,7 @@
       const tbody = document.getElementById('salesTable');
       tbody.innerHTML = '';
 
-      const filtered = invoicesHistory.filter(i => i.emision === selectedDate);
+      const filtered = window.invoicesHistory.filter(i => i.emision === selectedDate);
       let totalUsd = 0, totalCop = 0, totalBs = 0;
 
       filtered.forEach(inv => {
@@ -1048,28 +1115,39 @@
     }
 
     function renderAll() {
-      document.getElementById('dash-count').innerText = inventory.length;
+      document.getElementById('dash-count').innerText = window.inventory.length;
       
-      const totalStock = inventory.reduce((acc, i) => acc + (i.currentStock || 0), 0);
+      const totalStock = window.inventory.reduce((acc, i) => acc + (i.currentStock || 0), 0);
       document.getElementById('dash-stock').innerText = totalStock;
 
-      const totalInvVal = inventory.reduce((acc, i) => acc + (i.p1 * (i.currentStock || 0)), 0);
+      const totalInvVal = window.inventory.reduce((acc, i) => acc + (i.p1 * (i.currentStock || 0)), 0);
       document.getElementById('dash-val').innerText = '$' + totalInvVal.toFixed(2);
 
       filterPosProducts();
       renderInventoryTable();
       renderCart();
     }
+    window.renderAll = renderAll;
 
     function saveToStorage() {
-      localStorage.setItem('tj_inv_v7', JSON.stringify(inventory));
-      localStorage.setItem('tj_invoices_v7', JSON.stringify(invoicesHistory));
-      localStorage.setItem('tj_nota_num_v7', nextNotaNumber);
-      localStorage.setItem('tj_prod_num_v7', nextProdNum);
+      localStorage.setItem('tj_inv_v7', JSON.stringify(window.inventory));
+      localStorage.setItem('tj_invoices_v7', JSON.stringify(window.invoicesHistory));
+      localStorage.setItem('tj_nota_num_v7', window.nextNotaNumber);
+      localStorage.setItem('tj_prod_num_v7', window.nextProdNum);
+
+      if (window.saveToFirebaseCloud) {
+        window.saveToFirebaseCloud();
+      }
     }
 
     function exportData() {
-      const data = { inventory, invoicesHistory, nextNotaNumber, nextProdNum, blockedIPs: getBlockedIPs() };
+      const data = { 
+        inventory: window.inventory, 
+        invoicesHistory: window.invoicesHistory, 
+        nextNotaNumber: window.nextNotaNumber, 
+        nextProdNum: window.nextProdNum, 
+        blockedIPs: getBlockedIPs() 
+      };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
@@ -1092,10 +1170,10 @@
         try {
           const imported = JSON.parse(evt.target.result);
           if (imported.inventory && imported.invoicesHistory) {
-            inventory = imported.inventory;
-            invoicesHistory = imported.invoicesHistory;
-            nextNotaNumber = imported.nextNotaNumber || 1;
-            nextProdNum = imported.nextProdNum || 1;
+            window.inventory = imported.inventory;
+            window.invoicesHistory = imported.invoicesHistory;
+            window.nextNotaNumber = imported.nextNotaNumber || 1;
+            window.nextProdNum = imported.nextProdNum || 1;
             if (imported.blockedIPs) saveBlockedIPs(imported.blockedIPs);
 
             saveToStorage();
@@ -1111,7 +1189,6 @@
       reader.readAsText(file);
     }
 
-    // Inicialización del sistema
     checkPublicRoute();
   </script>
 </body>
