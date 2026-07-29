@@ -22,10 +22,10 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-main); color: var(--text); font-size: 0.88rem; min-height: 100vh; display: flex; overflow: hidden; }
 
-    /* PÁGINA PÚBLICA DE VERIFICACIÓN QR */
+    /* PÁGINA PÚBLICA DE VERIFICACIÓN QR (Completamente aislada) */
     #public-qr-screen {
       display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #f8fafc; z-index: 10000; padding: 20px; flex-direction: column; align-items: center; justify-content: center;
+      background: #f8fafc; z-index: 99999; padding: 20px; flex-direction: column; align-items: center; justify-content: center;
     }
     .public-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 30px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; }
 
@@ -111,7 +111,7 @@
 </head>
 <body>
 
-  <!-- PANTALLA PÚBLICA DE VERIFICACIÓN QR -->
+  <!-- PANTALLA PÚBLICA DE VERIFICACIÓN QR (Aislada, sin menús ni login) -->
   <div id="public-qr-screen">
     <div class="public-card">
       <h2 style="color:var(--accent); margin-bottom:5px;">Comercializadora Tío Julián</h2>
@@ -134,8 +134,8 @@
       <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px;">Acceso Restringido al Sistema</p>
 
       <div id="ipBlockedMessage" class="blocked-banner">
-        🚨 IP BLOQUEADA POR SEGURIDAD<br>
-        Se han detectado más de 4 intentos fallidos desde este dispositivo. Póngase en contacto con el administrador para solicitar el desbloqueo.
+        🚨 IP / DISPOSITIVO BLOQUEADO POR SEGURIDAD<br>
+        Se han detectado más de 4 intentos fallidos desde este equipo. Póngase en contacto con el administrador para solicitar el desbloqueo.
       </div>
       
       <form id="loginForm" onsubmit="login(event)" autocomplete="off">
@@ -445,20 +445,20 @@
       <!-- MÓDULO DE SEGURIDAD / DESBLOQUEO DE IPS -->
       <div id="sec-sec" style="display:none;">
         <h1 style="margin-bottom:10px; color:var(--danger);">🛡️ Escudo de Seguridad & Registro de Bloqueos</h1>
-        <p style="color:var(--text-muted); margin-bottom:20px;">Monitoreo en tiempo real de direcciones IP bloqueadas por superar 4 intentos fallidos de inicio de sesión.</p>
+        <p style="color:var(--text-muted); margin-bottom:20px;">Monitoreo en tiempo real de direcciones IP y dispositivos bloqueados por superar 4 intentos fallidos de inicio de sesión.</p>
 
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3>Dispositivos e IPs Bloqueados</h3>
+            <h3>Dispositivos e IPs Registradas</h3>
             <button onclick="clearAllSecurityLogs()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:bold;">Restablecer Todo</button>
           </div>
 
           <table class="table-sys">
             <thead>
               <tr>
-                <th>Dirección IP Detectada</th>
-                <th>Dispositivo / Navegador Atacante</th>
-                <th>Fecha y Hora del Intentos</th>
+                <th>Dirección IP / Identificador</th>
+                <th>Dispositivo / Navegador</th>
+                <th>Fecha y Hora de Intento</th>
                 <th>Intentos Fallidos</th>
                 <th>Estado</th>
                 <th>Acción</th>
@@ -473,17 +473,24 @@
   </div>
 
   <script>
-    const GAMMA_SITE_URL = "https://comercializadoratiojulia-w8lw1af.gamma.site/";
+    const GAMMA_SITE_URL = window.location.origin + window.location.pathname;
 
     // -------------------------------------------------------------------
-    // FIREWALL Y SISTEMA DE SEGURIDAD ANTI-HACKEO DE IP
+    // FIREWALL Y SISTEMA DE SEGURIDAD ANTI-HACKEO DE IP DETECTADA MEJORADO
     // -------------------------------------------------------------------
-    let userIP = "192.168.1.100";
+    let userIP = "Local (192.168.1." + Math.floor(Math.random() * 50 + 10) + ")";
     
+    // Intenta obtener IP real mediante API publica, o asigna ID persistente por dispositivo
     fetch('https://api.ipify.org?format=json')
       .then(res => res.json())
       .then(data => { userIP = data.ip; checkIPStatus(); })
-      .catch(() => { checkIPStatus(); });
+      .catch(() => { 
+        if(!localStorage.getItem('tj_device_id')) {
+          localStorage.setItem('tj_device_id', "DEV-IP-" + Math.floor(1000 + Math.random() * 9000));
+        }
+        userIP = localStorage.getItem('tj_device_id');
+        checkIPStatus(); 
+      });
 
     function getDeviceDescription() {
       const ua = navigator.userAgent;
@@ -511,6 +518,9 @@
     }
 
     function checkIPStatus() {
+      // Revisa el estado si la solicitud es una vista normal y no del QR
+      if (window.location.hash.startsWith('#verificar')) return;
+
       const blocked = getBlockedIPs();
       const current = blocked[userIP];
 
@@ -561,7 +571,7 @@
     }
 
     function clearAllSecurityLogs() {
-      if (confirm("¿Desbloquear todas las IPs registradas?")) {
+      if (confirm("¿Desbloquear todas las IPs y limpiar registros de seguridad?")) {
         localStorage.removeItem('tj_blocked_ips');
         renderSecurityTable();
         checkIPStatus();
@@ -575,7 +585,7 @@
 
       const keys = Object.keys(blocked);
       if (keys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No hay IPs bloqueadas por el momento. El sistema está seguro.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding: 15px;">No hay registros de intentos fallidos o IPs bloqueadas. El sistema está seguro.</td></tr>`;
         return;
       }
 
@@ -654,9 +664,13 @@
         document.getElementById('pub-monto').innerText = monto ? `$${parseFloat(monto).toFixed(2)} USD` : '---';
         document.getElementById('pub-fecha').innerText = fecha || '---';
 
+        // Oculta completamente la interfaz del sistema y muestra solo la pantalla pública
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-container').style.display = 'none';
         document.getElementById('public-qr-screen').style.display = 'flex';
       } else {
         document.getElementById('public-qr-screen').style.display = 'none';
+        checkIPStatus();
       }
     }
     window.addEventListener('hashchange', checkPublicRoute);
@@ -1097,6 +1111,7 @@
       reader.readAsText(file);
     }
 
+    // Inicialización del sistema
     checkPublicRoute();
   </script>
 </body>
