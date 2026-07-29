@@ -10,7 +10,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Configuración con tus claves extraídas de tu consola
     const firebaseConfig = {
       apiKey: "AIzaSyBNVANTqoJcSZReqeIkLSv6s9DxU_enWDc",
       authDomain: "comercializadora-abb0b.firebaseapp.com",
@@ -39,9 +38,17 @@
             window.invoicesHistory = data.invoicesHistory;
             localStorage.setItem('tj_invoices_v7', JSON.stringify(data.invoicesHistory));
           }
+          if (data.fiscalInvoicesHistory) {
+            window.fiscalInvoicesHistory = data.fiscalInvoicesHistory;
+            localStorage.setItem('tj_fiscal_invoices_v7', JSON.stringify(data.fiscalInvoicesHistory));
+          }
           if (data.nextNotaNumber) {
             window.nextNotaNumber = data.nextNotaNumber;
             localStorage.setItem('tj_nota_num_v7', data.nextNotaNumber);
+          }
+          if (data.nextFiscalNumber) {
+            window.nextFiscalNumber = data.nextFiscalNumber;
+            localStorage.setItem('tj_fiscal_num_v7', data.nextFiscalNumber);
           }
           if (data.nextProdNum) {
             window.nextProdNum = data.nextProdNum;
@@ -69,7 +76,9 @@
         const payload = {
           inventory: window.inventory || [],
           invoicesHistory: window.invoicesHistory || [],
+          fiscalInvoicesHistory: window.fiscalInvoicesHistory || [],
           nextNotaNumber: window.nextNotaNumber || 1,
+          nextFiscalNumber: window.nextFiscalNumber || 1,
           nextProdNum: window.nextProdNum || 1,
           blockedIPs: (typeof getBlockedIPs === 'function') ? getBlockedIPs() : {}
         };
@@ -93,6 +102,7 @@
       --text-muted: #64748b;
       --danger: #ef4444;
       --success: #10b981;
+      --fiscal: #8b5cf6;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -134,7 +144,7 @@
     .brand { font-size: 1.15rem; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 10px; }
     
     nav ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    nav a { color: var(--text-muted); text-decoration: none; padding: 12px 14px; border-radius: 8px; display: flex; align-items: center; gap: 10px; font-weight: 600; }
+    nav a { color: var(--text-muted); text-decoration: none; padding: 10px 12px; border-radius: 8px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.85rem; }
     nav a.active, nav a:hover { background: var(--accent-light); color: var(--accent); }
 
     main { flex: 1; padding: 30px; overflow-y: auto; }
@@ -146,12 +156,8 @@
     .table-sys { width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px; }
     .table-sys th { background: #f1f5f9; padding: 10px; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; border-bottom: 2px solid var(--border); }
     .table-sys td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-    
-    .badge { padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
-    .badge-iva { background: #dcfce7; color: #15803d; }
-    .badge-exempt { background: #fef3c7; color: #b45309; }
 
-    /* FACTURA EN PAPEL VERTICAL (PORTRAIT) DE HASTA 32 ÍTEMS COMPACTA */
+    /* FACTURA / NOTA EN PAPEL VERTICAL (PORTRAIT) */
     .print-sheet { display: flex; flex-direction: column; gap: 10px; }
     .invoice-preview {
       background: #fff; color: #000; padding: 15px 20px; max-width: 800px; margin: 0 auto;
@@ -164,14 +170,13 @@
 
     .doc-client { border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 0; margin: 4px 0; font-size: 0.7rem; font-weight: 700; line-height: 1.2; text-transform: uppercase; }
     
-    /* TABLA COMPACTA VERTICAL HASTA 32 ÍTEMS */
     .doc-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; margin-bottom: 6px; }
     .doc-table th { border-bottom: 1px solid #000; text-align: left; padding: 2px 4px; background: #f1f5f9; }
     .doc-table td { padding: 1px 4px; border-bottom: 1px solid #e2e8f0; }
 
     .doc-totals { text-align: right; font-size: 0.7rem; font-weight: 800; line-height: 1.2; border-top: 1px solid #000; padding-top: 2px; }
 
-    /* REGLA DE IMPRESIÓN EN VERTICAL (PORTRAIT) COMPACTA PARA 32 ÍTEMS */
+    /* REGLA DE IMPRESIÓN */
     @media print {
       body { background: #fff !important; color: #000 !important; }
       #login-screen, aside, .no-print, #public-qr-screen { display: none !important; }
@@ -196,7 +201,7 @@
       
       <div id="qr-result-box" style="text-align:left; line-height:1.6; font-size:0.9rem;">
         <p><strong>Estado:</strong> <span style="color:var(--success); font-weight:bold;">✔ Documento Válido</span></p>
-        <p><strong>Nº Nota de Entrega:</strong> <span id="pub-num">---</span></p>
+        <p><strong>Nº Documento:</strong> <span id="pub-num">---</span></p>
         <p><strong>Monto Total USD:</strong> <span id="pub-monto">---</span></p>
         <p><strong>Fecha de Emisión:</strong> <span id="pub-fecha">---</span></p>
       </div>
@@ -210,21 +215,19 @@
       <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px;">Acceso Restringido al Sistema</p>
 
       <div id="ipBlockedMessage" class="blocked-banner">
-        🚨 IP BLOQUEADA POR SEGURIDAD<br>
-        Se han detectado más de 4 intentos fallidos desde este dispositivo. Póngase en contacto con el administrador para solicitar el desbloqueo.
+        🚨 DISPOSITIVO / IP BLOQUEADA<br>
+        Se han detectado intentos fallidos desde este equipo.
+        <button onclick="forceUnblockThisDevice()" style="margin-top:12px; background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:bold; width:100%;">🔓 Liberar este Dispositivo Ahora</button>
       </div>
       
       <form id="loginForm" onsubmit="login(event)" autocomplete="off">
-        <input type="text" name="fake_user_field" style="display:none;" />
-        <input type="password" name="fake_pass_field" style="display:none;" />
-
         <div style="text-align:left; margin-bottom:15px;">
           <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">USUARIO</label>
-          <input type="text" id="userInput" class="input-sys" placeholder="Usuario" autocomplete="new-password" required>
+          <input type="text" id="userInput" class="input-sys" placeholder="Usuario" required>
         </div>
         <div style="text-align:left; margin-bottom:15px;">
           <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">CONTRASEÑA</label>
-          <input type="password" id="passInput" class="input-sys" placeholder="••••••••" autocomplete="new-password" required>
+          <input type="password" id="passInput" class="input-sys" placeholder="••••••••" required>
         </div>
 
         <div id="attemptCounter" style="font-size:0.75rem; color:var(--danger); margin-bottom:15px; font-weight:bold; display:none;"></div>
@@ -242,8 +245,9 @@
         <ul>
           <li><a href="#" id="m-dash" class="active" onclick="showTab('dash')">📊 Panel General</a></li>
           <li><a href="#" id="m-inv" onclick="showTab('inv')">📋 Inventario</a></li>
-          <li><a href="#" id="m-pos" onclick="showTab('pos')">📄 Facturación (32 Ítems)</a></li>
-          <li><a href="#" id="m-hist" onclick="showTab('hist')">📂 Facturas Guardadas</a></li>
+          <li><a href="#" id="m-pos" onclick="showTab('pos')">📄 Nota de Entrega</a></li>
+          <li><a href="#" id="m-fiscal" onclick="showTab('fiscal')">🧾 Facturas Fiscales (SENIAT)</a></li>
+          <li><a href="#" id="m-hist" onclick="showTab('hist')">📂 Notas Guardadas</a></li>
           <li><a href="#" id="m-sales" onclick="showTab('sales')">📈 Ventas Diarias</a></li>
           <li><a href="#" id="m-sec" onclick="showTab('sec')">🛡️ Seguridad / IPs</a></li>
         </ul>
@@ -287,7 +291,7 @@
         <div class="card">
           <h3 style="margin-bottom:15px; font-size:0.95rem;">Registrar Nuevo Producto</h3>
           
-          <div style="display:grid; grid-template-columns: 1fr 2fr 1fr 1fr 1fr auto; gap:10px; align-items:end; margin-bottom:12px;">
+          <div style="display:grid; grid-template-columns: 1fr 2fr 1fr 1fr 1fr; gap:10px; align-items:end; margin-bottom:12px;">
             <div>
               <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CÓDIGO (AUTO)</label>
               <input type="text" id="pCode" class="input-sys" readonly style="background:#e2e8f0; font-weight:bold;">
@@ -308,10 +312,6 @@
               <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">STOCK INICIAL</label>
               <input type="number" id="pStock" class="input-sys" value="50">
             </div>
-            <div style="display:flex; align-items:center; gap:8px; padding-bottom:8px;">
-              <input type="checkbox" id="pHasIva" style="width:18px; height:18px; cursor:pointer;" checked>
-              <label for="pHasIva" style="font-size:0.8rem; font-weight:700; cursor:pointer;">IVA 16%</label>
-            </div>
           </div>
           <button onclick="saveProduct()" class="btn-primary">+ Guardar Producto en Inventario</button>
         </div>
@@ -327,8 +327,7 @@
               <tr>
                 <th>Código</th>
                 <th>Descripción</th>
-                <th>Impuesto</th>
-                <th>Stock (Quedan / Inicial)</th>
+                <th>Stock Disponible</th>
                 <th>Precio 1 - Detal (USD)</th>
                 <th>Precio 2 - Mayor (USD)</th>
                 <th>Acciones</th>
@@ -339,18 +338,18 @@
         </div>
       </div>
 
-      <!-- FACTURACIÓN (HABILITADA PARA 32 ÍTEMS VERTICALES) -->
+      <!-- NOTA DE ENTREGA (SIN IVA) -->
       <div id="sec-pos" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;" class="no-print">
-          <h1>Punto de Facturación (Soporta hasta 32 Ítems)</h1>
+          <h1>Emisión de Notas de Entrega (Sin IVA)</h1>
           <div style="display:flex; gap:10px;">
-            <button class="btn-primary" onclick="guardarEImprimirNota()" style="background:#10b981; width:auto; padding:10px 18px;">🖨️ Guardar e Imprimir (Vertical)</button>
+            <button class="btn-primary" onclick="guardarEImprimirNota()" style="background:#10b981; width:auto; padding:10px 18px;">🖨️ Guardar e Imprimir Nota</button>
             <button class="btn-primary" onclick="nuevaFactura()" style="background:var(--accent); width:auto; padding:10px 18px;">+ Nueva Nota Limpia</button>
           </div>
         </div>
 
         <div class="card no-print">
-          <h3 style="font-size:0.9rem; margin-bottom:10px;">Encabezado y Datos del Documento</h3>
+          <h3 style="font-size:0.9rem; margin-bottom:10px;">Encabezado y Datos del Cliente</h3>
           <div class="grid-3" style="margin-bottom:12px;">
             <div>
               <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">Nº NOTA DE ENTREGA (AUTO)</label>
@@ -384,7 +383,7 @@
             </div>
           </div>
 
-          <h3 style="font-size:0.9rem; margin-bottom:10px;">Añadir Productos (Límite: 32 Ítems por hoja)</h3>
+          <h3 style="font-size:0.9rem; margin-bottom:10px;">Añadir Productos</h3>
           <div style="margin-bottom: 10px;">
             <input type="text" id="posProductSearch" class="input-sys" placeholder="🔍 Buscar producto..." oninput="filterPosProducts()" style="border-color: var(--accent); background: #ffffff;">
           </div>
@@ -400,7 +399,7 @@
           </div>
         </div>
 
-        <!-- VISTA DE IMPRESIÓN (DISEÑO VERTICAL / PORTRAIT PARA 32 FILAS) -->
+        <!-- IMPRESIÓN NOTA DE ENTREGA (LIMPIA SIN IVA) -->
         <div class="print-sheet">
           <div class="invoice-preview">
             <div class="doc-header">
@@ -422,13 +421,12 @@
             <table class="doc-table">
               <thead>
                 <tr>
-                  <th style="width:4%;">#</th>
-                  <th style="width:14%;">CÓDIGO</th>
+                  <th style="width:5%;">#</th>
+                  <th style="width:16%;">CÓDIGO</th>
                   <th>DESCRIPCIÓN DEL PRODUCTO</th>
-                  <th style="text-align:center; width:5%;">IVA</th>
-                  <th style="text-align:right; width:8%;">CANT</th>
-                  <th style="text-align:right; width:12%;">PRECIO U.</th>
-                  <th style="text-align:right; width:13%;">TOTAL ($)</th>
+                  <th style="text-align:right; width:10%;">CANT</th>
+                  <th style="text-align:right; width:14%;">PRECIO U.</th>
+                  <th style="text-align:right; width:15%;">TOTAL ($)</th>
                 </tr>
               </thead>
               <tbody class="cart-table-body"></tbody>
@@ -443,11 +441,10 @@
               </div>
 
               <div class="doc-totals">
-                <div>EXENTO: $<span class="lbl-exempt">0.00</span> | BASE IMPONIBLE: $<span class="lbl-sub">0.00</span> | I.V.A. (16%): $<span class="lbl-iva">0.00</span></div>
-                <div style="font-size:0.85rem; font-weight:900; border-top:1px solid #000; padding-top:1px;">
-                  TOTAL USD: $<span class="lbl-total-usd">0.00</span>
+                <div style="font-size:0.85rem; font-weight:900; padding-top:1px;">
+                  TOTAL A PAGAR: $<span class="lbl-total-usd">0.00</span> USD
                 </div>
-                <div style="font-size:0.68rem;">EQUIV: $<span class="lbl-total-cop">0.00</span> COP &nbsp;|&nbsp; <span class="lbl-total-bs">0.00</span> Bs.</div>
+                <div style="font-size:0.68rem; margin-top:2px;">EQUIV: $<span class="lbl-total-cop">0.00</span> COP &nbsp;|&nbsp; <span class="lbl-total-bs">0.00</span> Bs.</div>
               </div>
             </div>
           </div>
@@ -455,7 +452,66 @@
 
       </div>
 
-      <!-- HISTORIAL DE FACTURAS -->
+      <!-- FACTURAS FISCALES (SENIAT) -->
+      <div id="sec-fiscal" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;" class="no-print">
+          <h1 style="color:var(--fiscal);">🧾 Facturación Fiscal SENIAT (Con IVA 16%)</h1>
+          <button class="btn-primary" onclick="guardarEImprimirFacturaFiscal()" style="background:var(--fiscal); width:auto; padding:10px 18px;">🖨️ Emitir Factura Fiscal</button>
+        </div>
+
+        <div class="card no-print">
+          <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:15px;">Este apartado está diseñado para cuando desees emitir facturas legales con desglose tributario de IVA del 16%.</p>
+          
+          <div class="grid-3" style="margin-bottom:12px;">
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FACTURA FISCAL Nº</label>
+              <input type="text" id="fiscalNum" class="input-sys" readonly style="background:#e2e8f0; font-weight:bold;">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FECHA DE EMISIÓN</label>
+              <input type="date" id="fiscalEmision" class="input-sys">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">Nº DE CONTROL FISCAL</label>
+              <input type="text" id="fiscalControl" class="input-sys" placeholder="00-000001">
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-bottom:15px;">
+            <input type="text" id="fiscalName" class="input-sys" placeholder="Razón Social / Nombre Cliente">
+            <input type="text" id="fiscalRif" class="input-sys" placeholder="RIF (Ej: J-12345678-0)">
+          </div>
+
+          <h3 style="font-size:0.9rem; margin-bottom:10px;">Añadir Ítems a la Factura Fiscal</h3>
+          <div style="display:flex; gap:10px;">
+            <select id="fiscalPSelect" class="input-sys" style="flex:2;"></select>
+            <input type="number" id="fiscalPQty" class="input-sys" value="1" style="width:90px;">
+            <button onclick="addFiscalCart()" class="btn-primary" style="background:var(--fiscal); width:auto; padding:0 20px;">+ Añadir a Factura</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Detalle de la Factura Fiscal en Proceso</h3>
+          <table class="table-sys">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Cant.</th>
+                <th>Precio Base</th>
+                <th>IVA (16%)</th>
+                <th>Total ($ USD)</th>
+              </tr>
+            </thead>
+            <tbody id="fiscalTableBody"></tbody>
+          </table>
+          <div style="text-align:right; margin-top:15px; font-weight:bold; font-size:1rem;">
+            Subtotal Base: $<span id="fiscalBase">0.00</span> | IVA (16%): $<span id="fiscalIva">0.00</span> | TOTAL FISCAL: $<span id="fiscalTotal">0.00</span> USD
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORIAL DE NOTAS -->
       <div id="sec-hist" style="display:none;">
         <h1 style="margin-bottom:20px;">Historial de Notas Emitidas</h1>
         <div class="card">
@@ -518,10 +574,10 @@
         </div>
       </div>
 
-      <!-- MÓDULO DE SEGURIDAD / DESBLOQUEO DE IPS -->
+      <!-- SEGURIDAD -->
       <div id="sec-sec" style="display:none;">
         <h1 style="margin-bottom:10px; color:var(--danger);">🛡️ Escudo de Seguridad & Registro de Bloqueos</h1>
-        <p style="color:var(--text-muted); margin-bottom:20px;">Monitoreo en tiempo real de direcciones IP bloqueadas por superar 4 intentos fallidos de inicio de sesión.</p>
+        <p style="color:var(--text-muted); margin-bottom:20px;">Monitoreo en tiempo real de direcciones IP bloqueadas.</p>
 
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -552,7 +608,7 @@
     const GAMMA_SITE_URL = "https://comercializadoratiojulia-w8lw1af.gamma.site/";
 
     // -------------------------------------------------------------------
-    // FIREWALL Y SISTEMA DE SEGURIDAD ANTI-HACKEO DE IP
+    // SEGURIDAD ANTI-HACKEO Y CONTROL IP
     // -------------------------------------------------------------------
     let userIP = "192.168.1.100";
     
@@ -578,13 +634,8 @@
       return `${dev} (${browser})`;
     }
 
-    function getBlockedIPs() {
-      return JSON.parse(localStorage.getItem('tj_blocked_ips')) || {};
-    }
-
-    function saveBlockedIPs(data) {
-      localStorage.setItem('tj_blocked_ips', JSON.stringify(data));
-    }
+    function getBlockedIPs() { return JSON.parse(localStorage.getItem('tj_blocked_ips')) || {}; }
+    function saveBlockedIPs(data) { localStorage.setItem('tj_blocked_ips', JSON.stringify(data)); }
     window.saveBlockedIPs = saveBlockedIPs;
 
     function checkIPStatus() {
@@ -600,17 +651,18 @@
       }
     }
 
+    function forceUnblockThisDevice() {
+      localStorage.removeItem('tj_blocked_ips');
+      if (window.saveToFirebaseCloud) window.saveToFirebaseCloud();
+      checkIPStatus();
+      alert("Dispositivo liberado con éxito. Ya puedes iniciar sesión.");
+    }
+
     function registerFailedAttempt() {
       const blocked = getBlockedIPs();
       if (!blocked[userIP]) {
-        blocked[userIP] = {
-          ip: userIP,
-          device: getDeviceDescription(),
-          attempts: 0,
-          lastDate: new Date().toLocaleString()
-        };
+        blocked[userIP] = { ip: userIP, device: getDeviceDescription(), attempts: 0, lastDate: new Date().toLocaleString() };
       }
-
       blocked[userIP].attempts += 1;
       blocked[userIP].lastDate = new Date().toLocaleString();
       saveBlockedIPs(blocked);
@@ -621,7 +673,7 @@
       counterEl.style.display = 'block';
 
       if (remaining > 0) {
-        counterEl.innerText = `⚠️ Clave incorrecta. Le quedan ${remaining} intento(s) antes de bloquear su IP.`;
+        counterEl.innerText = `⚠️ Clave incorrecta. Le quedan ${remaining} intento(s).`;
       } else {
         checkIPStatus();
       }
@@ -635,7 +687,7 @@
         if (window.saveToFirebaseCloud) window.saveToFirebaseCloud();
         renderSecurityTable();
         checkIPStatus();
-        alert(`La IP ${ipToUnblock} ha sido desbloqueada exitosamente.`);
+        alert(`La IP ${ipToUnblock} ha sido desbloqueada.`);
       }
     }
 
@@ -655,7 +707,7 @@
 
       const keys = Object.keys(blocked);
       if (keys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No hay IPs bloqueadas por el momento. El sistema está seguro.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No hay IPs bloqueadas.</td></tr>`;
         return;
       }
 
@@ -668,72 +720,37 @@
             <td>${item.device}</td>
             <td>${item.lastDate}</td>
             <td><span style="color:var(--danger); font-weight:bold;">${item.attempts} / 4</span></td>
-            <td>
-              <span class="badge ${isBlocked ? 'badge-exempt' : 'badge-iva'}" style="${isBlocked ? 'background:#fee2e2; color:#991b1b;' : ''}">
-                ${isBlocked ? '⛔ BLOQUEADO' : '⚠️ En Advertencia'}
-              </span>
-            </td>
-            <td>
-              <button onclick="unblockIP('${item.ip}')" style="background:var(--success); color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">Desbloquear</button>
-            </td>
+            <td><span style="${isBlocked ? 'color:red; font-weight:bold;' : ''}">${isBlocked ? '⛔ BLOQUEADO' : '⚠️ Advertencia'}</span></td>
+            <td><button onclick="unblockIP('${item.ip}')" style="background:var(--success); color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Desbloquear</button></td>
           </tr>
         `;
       });
     }
 
-
     // -------------------------------------------------------------------
-    // OPERACIÓN DEL SISTEMA, FACTURACIÓN Y DATOS
+    // OPERACIONES DEL SISTEMA Y FACTURACIÓN
     // -------------------------------------------------------------------
     function generateOfflineQR(text) {
       const encodedText = encodeURIComponent(text);
       return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${encodedText}" alt="QR" width="50" height="50" />`;
     }
 
-    function loadStorageWithBackup() {
-      let inv = JSON.parse(localStorage.getItem('tj_inv_v7')) || [];
-      let hist = JSON.parse(localStorage.getItem('tj_invoices_v7')) || [];
-
-      const versions = ['v6', 'v5', 'v4', 'v3', 'v2', 'v1', ''];
-      if (inv.length === 0) {
-        for (let v of versions) {
-          const key = v ? `tj_inv_${v}` : 'tj_inv';
-          const oldInv = JSON.parse(localStorage.getItem(key));
-          if (oldInv && oldInv.length > 0) { inv = oldInv; break; }
-        }
-      }
-
-      if (hist.length === 0) {
-        for (let v of versions) {
-          const key = v ? `tj_invoices_${v}` : 'tj_invoices';
-          const oldHist = JSON.parse(localStorage.getItem(key));
-          if (oldHist && oldHist.length > 0) { hist = oldHist; break; }
-        }
-      }
-
-      return { inv, hist };
-    }
-
-    const { inv: initialInv, hist: initialHist } = loadStorageWithBackup();
-    window.inventory = initialInv;
-    window.invoicesHistory = initialHist;
+    window.inventory = JSON.parse(localStorage.getItem('tj_inv_v7')) || [];
+    window.invoicesHistory = JSON.parse(localStorage.getItem('tj_invoices_v7')) || [];
+    window.fiscalInvoicesHistory = JSON.parse(localStorage.getItem('tj_fiscal_invoices_v7')) || [];
     window.nextNotaNumber = parseInt(localStorage.getItem('tj_nota_num_v7')) || 1;
+    window.nextFiscalNumber = parseInt(localStorage.getItem('tj_fiscal_num_v7')) || 1;
     window.nextProdNum = parseInt(localStorage.getItem('tj_prod_num_v7')) || (window.inventory.length + 1);
-    let cart = [];
 
-    saveToStorage();
+    let cart = [];
+    let fiscalCart = [];
 
     function checkPublicRoute() {
       if (window.location.hash.startsWith('#verificar')) {
         const params = new URLSearchParams(window.location.hash.split('?')[1]);
-        const num = params.get('num');
-        const monto = params.get('monto');
-        const fecha = params.get('fecha');
-
-        document.getElementById('pub-num').innerText = num || 'Desconocido';
-        document.getElementById('pub-monto').innerText = monto ? `$${parseFloat(monto).toFixed(2)} USD` : '---';
-        document.getElementById('pub-fecha').innerText = fecha || '---';
-
+        document.getElementById('pub-num').innerText = params.get('num') || 'Desconocido';
+        document.getElementById('pub-monto').innerText = params.get('monto') ? `$${parseFloat(params.get('monto')).toFixed(2)} USD` : '---';
+        document.getElementById('pub-fecha').innerText = params.get('fecha') || '---';
         document.getElementById('public-qr-screen').style.display = 'flex';
       } else {
         document.getElementById('public-qr-screen').style.display = 'none';
@@ -742,13 +759,13 @@
     window.addEventListener('hashchange', checkPublicRoute);
 
     function initDates() {
-      const today = new Date();
-      const todayStr = today.toISOString().split('T')[0];
-      document.getElementById('fInputEmision').value = todayStr;
-      document.getElementById('salesDateFilter').value = todayStr;
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('fInputEmision').value = today;
+      document.getElementById('fiscalEmision').value = today;
+      document.getElementById('salesDateFilter').value = today;
       
-      const formattedNum = String(window.nextNotaNumber).padStart(7, '0');
-      document.getElementById('fInputNum').value = formattedNum;
+      document.getElementById('fInputNum').value = String(window.nextNotaNumber).padStart(7, '0');
+      document.getElementById('fiscalNum').value = "FACT-" + String(window.nextFiscalNumber).padStart(6, '0');
 
       updateAutoProdCode();
       autoCalculateExpiry();
@@ -756,8 +773,7 @@
     window.initDates = initDates;
 
     function updateAutoProdCode() {
-      const codeStr = "PROD-" + String(window.nextProdNum).padStart(4, '0');
-      document.getElementById('pCode').value = codeStr;
+      document.getElementById('pCode').value = "PROD-" + String(window.nextProdNum).padStart(4, '0');
     }
 
     function autoCalculateExpiry() {
@@ -766,7 +782,6 @@
 
       const emisionDate = new Date(emisionVal + 'T00:00:00');
       emisionDate.setDate(emisionDate.getDate() + 15);
-      
       document.getElementById('fInputVenc').value = emisionDate.toISOString().split('T')[0];
       updateFactura();
     }
@@ -777,11 +792,6 @@
       const p = document.getElementById('passInput').value;
 
       if (u === 'admin' && p === '15597680') {
-        const blocked = getBlockedIPs();
-        if (blocked[userIP]) {
-          delete blocked[userIP];
-          saveBlockedIPs(blocked);
-        }
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-container').style.display = 'flex';
         initDates();
@@ -795,6 +805,7 @@
       document.getElementById('sec-dash').style.display = tab === 'dash' ? 'block' : 'none';
       document.getElementById('sec-inv').style.display = tab === 'inv' ? 'block' : 'none';
       document.getElementById('sec-pos').style.display = tab === 'pos' ? 'block' : 'none';
+      document.getElementById('sec-fiscal').style.display = tab === 'fiscal' ? 'block' : 'none';
       document.getElementById('sec-hist').style.display = tab === 'hist' ? 'block' : 'none';
       document.getElementById('sec-sales').style.display = tab === 'sales' ? 'block' : 'none';
       document.getElementById('sec-sec').style.display = tab === 'sec' ? 'block' : 'none';
@@ -802,6 +813,7 @@
       document.getElementById('m-dash').className = tab === 'dash' ? 'active' : '';
       document.getElementById('m-inv').className = tab === 'inv' ? 'active' : '';
       document.getElementById('m-pos').className = tab === 'pos' ? 'active' : '';
+      document.getElementById('m-fiscal').className = tab === 'fiscal' ? 'active' : '';
       document.getElementById('m-hist').className = tab === 'hist' ? 'active' : '';
       document.getElementById('m-sales').className = tab === 'sales' ? 'active' : '';
       document.getElementById('m-sec').className = tab === 'sec' ? 'active' : '';
@@ -817,11 +829,10 @@
       const p1 = parseFloat(document.getElementById('pPrice1').value);
       const p2 = parseFloat(document.getElementById('pPrice2').value) || p1;
       const stock = parseInt(document.getElementById('pStock').value) || 0;
-      const hasIva = document.getElementById('pHasIva').checked;
 
-      if(!desc || isNaN(p1)) return alert("Por favor escriba la descripción y el Precio 1 en USD.");
+      if(!desc || isNaN(p1)) return alert("Escriba la descripción y el Precio 1.");
 
-      window.inventory.push({ code, desc, p1, p2, hasIva, initialStock: stock, currentStock: stock });
+      window.inventory.push({ code, desc, p1, p2, initialStock: stock, currentStock: stock });
       window.nextProdNum++;
       
       saveToStorage();
@@ -846,49 +857,38 @@
     function filterPosProducts() {
       const query = document.getElementById('posProductSearch').value.toLowerCase().trim();
       const pSelect = document.getElementById('pSelect');
-      const selectedVal = pSelect.value;
+      const fiscalPSelect = document.getElementById('fiscalPSelect');
       
       pSelect.innerHTML = '';
+      fiscalPSelect.innerHTML = '';
 
-      let matches = 0;
       window.inventory.forEach((item, idx) => {
         if (item.code.toLowerCase().includes(query) || item.desc.toLowerCase().includes(query)) {
-          pSelect.innerHTML += `<option value="${idx}">${item.code} — ${item.desc} (Stock: ${item.currentStock})</option>`;
-          matches++;
+          const opt = `<option value="${idx}">${item.code} — ${item.desc} (Stock: ${item.currentStock})</option>`;
+          pSelect.innerHTML += opt;
+          fiscalPSelect.innerHTML += opt;
         }
       });
-
-      if (matches === 0) {
-        pSelect.innerHTML = `<option value="">Sin coincidencias para "${query}"</option>`;
-      } else if (selectedVal !== null && pSelect.querySelector(`option[value="${selectedVal}"]`)) {
-        pSelect.value = selectedVal;
-      }
     }
 
     function addToCart() {
-      if (cart.length >= 32) {
-        return alert("Ha alcanzado el límite máximo de 32 ítems permitidos por factura.");
-      }
+      if (cart.length >= 32) return alert("Máximo 32 ítems por nota.");
 
       const idx = document.getElementById('pSelect').value;
       const pType = document.getElementById('priceType').value;
       const qty = parseFloat(document.getElementById('pQty').value);
 
-      if(idx === "" || !window.inventory[idx]) return alert("Seleccione un producto válido");
-      if(isNaN(qty) || qty <= 0) return alert("Cantidad no válida");
+      if(idx === "" || !window.inventory[idx]) return alert("Seleccione un producto.");
+      if(isNaN(qty) || qty <= 0) return alert("Cantidad no válida.");
 
       const item = window.inventory[idx];
-
-      if (qty > item.currentStock) {
-        return alert(`Stock insuficiente. Quedan ${item.currentStock} unidades.`);
-      }
+      if (qty > item.currentStock) return alert(`Stock insuficiente. Quedan ${item.currentStock}.`);
 
       const selectedPrice = pType === '1' ? item.p1 : item.p2;
-
       item.currentStock -= qty;
       saveToStorage();
 
-      cart.push({ code: item.code, desc: item.desc, qty, price: selectedPrice, hasIva: item.hasIva });
+      cart.push({ code: item.code, desc: item.desc, qty, price: selectedPrice });
       
       filterPosProducts();
       renderCart();
@@ -896,7 +896,7 @@
     }
 
     function guardarEImprimirNota() {
-      if (cart.length === 0) return alert("Añada al menos un producto antes de imprimir.");
+      if (cart.length === 0) return alert("Añada productos primero.");
 
       const numStr = document.getElementById('fInputNum').value;
       const totalUsd = parseFloat(document.querySelector('.lbl-total-usd').innerText.replace(/,/g, '')) || 0;
@@ -912,9 +912,7 @@
         rif: document.getElementById('fInputRif').value || 'V-00000000',
         phone: document.getElementById('fInputPhone').value || 'S/T',
         cart: [...cart],
-        totalUsd,
-        totalCop,
-        totalBs
+        totalUsd, totalCop, totalBs
       };
 
       window.invoicesHistory.push(notaData);
@@ -969,28 +967,16 @@
       const filter = document.getElementById('searchInv')?.value.toLowerCase() || '';
 
       invTbody.innerHTML = '';
-
       window.inventory.forEach((item, idx) => {
         if(item.desc.toLowerCase().includes(filter) || item.code.toLowerCase().includes(filter)) {
           invTbody.innerHTML += `
             <tr>
               <td><strong>${item.code}</strong></td>
               <td>${item.desc}</td>
-              <td>
-                <span class="badge ${item.hasIva ? 'badge-iva' : 'badge-exempt'}">
-                  ${item.hasIva ? 'IVA 16%' : 'Exento'}
-                </span>
-              </td>
-              <td>
-                <span style="font-weight:bold; color: ${item.currentStock > 5 ? 'var(--accent)' : 'var(--danger)'};">
-                  ${item.currentStock} dispon.
-                </span>
-              </td>
+              <td><strong>${item.currentStock} dispon.</strong></td>
               <td><strong>$${item.p1.toFixed(2)} USD</strong></td>
               <td><strong>$${item.p2.toFixed(2)} USD</strong></td>
-              <td>
-                <button onclick="deleteProduct(${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:700;">Eliminar</button>
-              </td>
+              <td><button onclick="deleteProduct(${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:700;">Eliminar</button></td>
             </tr>
           `;
         }
@@ -1001,23 +987,17 @@
       const tbodies = document.querySelectorAll('.cart-table-body');
       tbodies.forEach(tb => tb.innerHTML = '');
       
-      let baseExempt = 0;
-      let baseImponibleTotal = 0;
+      let grandTotal = 0;
 
       cart.forEach((item, index) => {
         const itemTotal = item.qty * item.price;
-        if (item.hasIva) {
-          baseImponibleTotal += itemTotal;
-        } else {
-          baseExempt += itemTotal;
-        }
+        grandTotal += itemTotal;
 
         const rowHTML = `
           <tr>
             <td>${index + 1}</td>
             <td>${item.code}</td>
             <td>${item.desc}</td>
-            <td style="text-align:center;">${item.hasIva ? 'G' : 'E'}</td>
             <td style="text-align:right;">${item.qty.toFixed(2)}</td>
             <td style="text-align:right;">${item.price.toFixed(2)}</td>
             <td style="text-align:right;">${itemTotal.toFixed(2)}</td>
@@ -1026,22 +1006,86 @@
         tbodies.forEach(tb => tb.innerHTML += rowHTML);
       });
 
-      const baseImponible = baseImponibleTotal / 1.16;
-      const iva = baseImponibleTotal - baseImponible;
-      const grandTotal = baseExempt + baseImponibleTotal;
-
-      document.querySelectorAll('.lbl-exempt').forEach(el => el.innerText = baseExempt.toFixed(2));
-      document.querySelectorAll('.lbl-sub').forEach(el => el.innerText = baseImponible.toFixed(2));
-      document.querySelectorAll('.lbl-iva').forEach(el => el.innerText = iva.toFixed(2));
       document.querySelectorAll('.lbl-total-usd').forEach(el => el.innerText = grandTotal.toFixed(2));
 
       const qrPublicUrl = `${GAMMA_SITE_URL}#verificar?num=${document.getElementById('fInputNum').value}&monto=${grandTotal.toFixed(2)}&fecha=${document.getElementById('fInputEmision').value}`;
-      
       document.querySelectorAll(".qrcode-box").forEach(box => {
         box.innerHTML = generateOfflineQR(qrPublicUrl);
       });
 
       updateFactura();
+    }
+
+    // --- MÓDULO FISCAL (SENIAT) ---
+    function addFiscalCart() {
+      const idx = document.getElementById('fiscalPSelect').value;
+      const qty = parseFloat(document.getElementById('fiscalPQty').value);
+
+      if(idx === "" || !window.inventory[idx]) return alert("Seleccione un producto");
+      const item = window.inventory[idx];
+
+      const basePrice = item.p1;
+      const iva = basePrice * 0.16;
+      const totalItem = (basePrice + iva) * qty;
+
+      fiscalCart.push({ code: item.code, desc: item.desc, qty, basePrice, iva, totalItem });
+      renderFiscalCart();
+    }
+
+    function renderFiscalCart() {
+      const tbody = document.getElementById('fiscalTableBody');
+      tbody.innerHTML = '';
+
+      let baseSum = 0, ivaSum = 0, totalSum = 0;
+
+      fiscalCart.forEach(item => {
+        const itemBase = item.basePrice * item.qty;
+        const itemIva = item.iva * item.qty;
+
+        baseSum += itemBase;
+        ivaSum += itemIva;
+        totalSum += item.totalItem;
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${item.code}</td>
+            <td>${item.desc}</td>
+            <td>${item.qty}</td>
+            <td>$${itemBase.toFixed(2)}</td>
+            <td>$${itemIva.toFixed(2)}</td>
+            <td><strong>$${item.totalItem.toFixed(2)}</strong></td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('fiscalBase').innerText = baseSum.toFixed(2);
+      document.getElementById('fiscalIva').innerText = ivaSum.toFixed(2);
+      document.getElementById('fiscalTotal').innerText = totalSum.toFixed(2);
+    }
+
+    function guardarEImprimirFacturaFiscal() {
+      if (fiscalCart.length === 0) return alert("Agregue productos a la factura fiscal.");
+      
+      const num = document.getElementById('fiscalNum').value;
+      const control = document.getElementById('fiscalControl').value;
+      const client = document.getElementById('fiscalName').value;
+      const rif = document.getElementById('fiscalRif').value;
+
+      if (!control || !client || !rif) return alert("Complete el número de control, razón social y RIF del cliente.");
+
+      window.fiscalInvoicesHistory.push({
+        num, control, client, rif,
+        emision: document.getElementById('fiscalEmision').value,
+        cart: [...fiscalCart],
+        total: parseFloat(document.getElementById('fiscalTotal').innerText)
+      });
+
+      window.nextFiscalNumber++;
+      saveToStorage();
+      alert(`Factura Fiscal ${num} registrada exitosamente.`);
+      fiscalCart = [];
+      renderFiscalCart();
+      initDates();
     }
 
     function renderHistoryTable() {
@@ -1057,9 +1101,7 @@
             <td><strong>$${inv.totalUsd.toFixed(2)} USD</strong></td>
             <td>$${inv.totalCop.toLocaleString()} COP</td>
             <td>${inv.totalBs.toFixed(2)} Bs</td>
-            <td>
-              <button onclick="reimprimirNota('${inv.num}')" style="background:var(--accent); color:#fff; border:none; padding:4px 10px; border-radius:4px; cursor:pointer;">Ver / Imprimir</button>
-            </td>
+            <td><button onclick="reimprimirNota('${inv.num}')" style="background:var(--accent); color:#fff; border:none; padding:4px 10px; border-radius:4px; cursor:pointer;">Ver / Imprimir</button></td>
           </tr>
         `;
       });
@@ -1116,7 +1158,6 @@
 
     function renderAll() {
       document.getElementById('dash-count').innerText = window.inventory.length;
-      
       const totalStock = window.inventory.reduce((acc, i) => acc + (i.currentStock || 0), 0);
       document.getElementById('dash-stock').innerText = totalStock;
 
@@ -1132,19 +1173,21 @@
     function saveToStorage() {
       localStorage.setItem('tj_inv_v7', JSON.stringify(window.inventory));
       localStorage.setItem('tj_invoices_v7', JSON.stringify(window.invoicesHistory));
+      localStorage.setItem('tj_fiscal_invoices_v7', JSON.stringify(window.fiscalInvoicesHistory));
       localStorage.setItem('tj_nota_num_v7', window.nextNotaNumber);
+      localStorage.setItem('tj_fiscal_num_v7', window.nextFiscalNumber);
       localStorage.setItem('tj_prod_num_v7', window.nextProdNum);
 
-      if (window.saveToFirebaseCloud) {
-        window.saveToFirebaseCloud();
-      }
+      if (window.saveToFirebaseCloud) window.saveToFirebaseCloud();
     }
 
     function exportData() {
       const data = { 
         inventory: window.inventory, 
         invoicesHistory: window.invoicesHistory, 
+        fiscalInvoicesHistory: window.fiscalInvoicesHistory,
         nextNotaNumber: window.nextNotaNumber, 
+        nextFiscalNumber: window.nextFiscalNumber,
         nextProdNum: window.nextProdNum, 
         blockedIPs: getBlockedIPs() 
       };
@@ -1157,9 +1200,7 @@
       downloadAnchor.remove();
     }
 
-    function importData() {
-      document.getElementById('importFile').click();
-    }
+    function importData() { document.getElementById('importFile').click(); }
 
     function processImport(e) {
       const file = e.target.files[0];
@@ -1172,15 +1213,17 @@
           if (imported.inventory && imported.invoicesHistory) {
             window.inventory = imported.inventory;
             window.invoicesHistory = imported.invoicesHistory;
+            window.fiscalInvoicesHistory = imported.fiscalInvoicesHistory || [];
             window.nextNotaNumber = imported.nextNotaNumber || 1;
+            window.nextFiscalNumber = imported.nextFiscalNumber || 1;
             window.nextProdNum = imported.nextProdNum || 1;
             if (imported.blockedIPs) saveBlockedIPs(imported.blockedIPs);
 
             saveToStorage();
             renderAll();
-            alert("¡Datos cargados e importados exitosamente!");
+            alert("¡Datos importados con éxito!");
           } else {
-            alert("El archivo no tiene un formato válido.");
+            alert("El archivo no es válido.");
           }
         } catch(err) {
           alert("Error al procesar el archivo.");
