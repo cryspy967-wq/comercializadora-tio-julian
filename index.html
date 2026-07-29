@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comercializadora Tío Julián - Offline</title>
+  <title>Comercializadora Tío Julián - Sistema Administrativo</title>
   <style>
     :root {
       --bg-main: #f0f7ff;
@@ -21,6 +21,13 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-main); color: var(--text); font-size: 0.88rem; min-height: 100vh; display: flex; overflow: hidden; }
+
+    /* PÁGINA PÚBLICA DE VERIFICACIÓN QR */
+    #public-qr-screen {
+      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #f8fafc; z-index: 10000; padding: 20px; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .public-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 30px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; }
 
     /* LOGIN */
     #login-screen {
@@ -64,33 +71,54 @@
     .badge-exempt { background: #fef3c7; color: #b45309; }
 
     /* FACTURA EN PAPEL */
+    .print-sheet { display: flex; flex-direction: column; gap: 10px; }
     .invoice-preview {
-      background: #fff; color: #000; padding: 35px; max-width: 730px; margin: 0 auto;
-      font-family: 'Courier New', Courier, monospace; border: 1px solid #000; box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      background: #fff; color: #000; padding: 20px 25px; max-width: 730px; margin: 0 auto;
+      font-family: 'Courier New', Courier, monospace; border: 1px solid #000; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%;
     }
-    .doc-header { text-align: center; margin-bottom: 15px; }
-    .doc-title { font-weight: 900; font-size: 1.3rem; font-family: sans-serif; text-transform: uppercase; color: #000; }
-    .doc-sub { font-size: 0.8rem; font-family: sans-serif; font-weight: 600; font-style: italic; }
-    .doc-fiscal { font-size: 0.75rem; font-family: sans-serif; margin-top: 2px; }
+    .doc-header { text-align: center; margin-bottom: 8px; }
+    .doc-title { font-weight: 900; font-size: 1.1rem; font-family: sans-serif; text-transform: uppercase; color: #000; }
+    .doc-sub { font-size: 0.75rem; font-family: sans-serif; font-weight: 600; font-style: italic; }
+    .doc-fiscal { font-size: 0.7rem; font-family: sans-serif; margin-top: 2px; }
 
-    .doc-client { border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 8px 0; margin: 12px 0; font-size: 0.78rem; font-weight: 700; line-height: 1.4; text-transform: uppercase; }
-    .doc-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 15px; }
-    .doc-table th { border-bottom: 1px solid #000; text-align: left; padding: 4px 0; }
-    .doc-table td { padding: 4px 0; }
+    .doc-client { border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 0; margin: 8px 0; font-size: 0.75rem; font-weight: 700; line-height: 1.3; text-transform: uppercase; }
+    .doc-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-bottom: 10px; }
+    .doc-table th { border-bottom: 1px solid #000; text-align: left; padding: 3px 0; }
+    .doc-table td { padding: 3px 0; }
 
-    .doc-totals { text-align: right; font-size: 0.8rem; font-weight: 800; line-height: 1.4; border-top: 1px solid #000; padding-top: 6px; }
+    .doc-totals { text-align: right; font-size: 0.75rem; font-weight: 800; line-height: 1.3; border-top: 1px solid #000; padding-top: 4px; }
 
+    /* MEDIA CARTA DUPLICADO PARA IMPRESIÓN EN HOJA CARTA */
     @media print {
       body { background: #fff !important; color: #000 !important; }
-      #login-screen, aside, .no-print { display: none !important; }
+      #login-screen, aside, .no-print, #public-qr-screen { display: none !important; }
       #app-container { display: block !important; }
       main { padding: 0 !important; }
-      .invoice-preview { border: none !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; box-shadow: none !important; }
-      @page { size: auto; margin: 5mm; }
+      .invoice-preview { border: 1px dashed #000 !important; padding: 15px 20px !important; width: 100% !important; max-width: 100% !important; box-shadow: none !important; page-break-inside: avoid; }
+      .print-sheet { display: flex !important; flex-direction: column !important; justify-content: space-between; height: 98vh; }
+      @page { size: letter; margin: 4mm; }
     }
   </style>
 </head>
 <body>
+
+  <!-- APARTADO PÚBLICO: VERIFICACIÓN QR -->
+  <div id="public-qr-screen">
+    <div class="public-card">
+      <h2 style="color:var(--accent); margin-bottom:5px;">Comercializadora Tío Julián</h2>
+      <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:15px;">Módulo de Verificación Digital de Documentos</p>
+      <hr style="margin-bottom:15px; border:none; border-top:1px solid var(--border);">
+      
+      <div id="qr-result-box" style="text-align:left; line-height:1.6; font-size:0.9rem;">
+        <p><strong>Estado:</strong> <span style="color:var(--success); font-weight:bold;">✔ Documento Válido</span></p>
+        <p><strong>Nº Nota de Entrega:</strong> <span id="pub-num">---</span></p>
+        <p><strong>Monto Total COP:</strong> <span id="pub-monto">---</span></p>
+        <p><strong>Fecha de Emisión:</strong> <span id="pub-fecha">---</span></p>
+      </div>
+      <br>
+      <a href="javascript:void(0)" onclick="location.hash=''" style="font-size:0.8rem; color:var(--text-muted);">Ir al Inicio</a>
+    </div>
+  </div>
 
   <!-- LOGIN -->
   <div id="login-screen">
@@ -121,6 +149,8 @@
           <li><a href="#" id="m-dash" class="active" onclick="showTab('dash')">📊 Panel General</a></li>
           <li><a href="#" id="m-inv" onclick="showTab('inv')">📋 Inventario</a></li>
           <li><a href="#" id="m-pos" onclick="showTab('pos')">📄 Facturación</a></li>
+          <li><a href="#" id="m-hist" onclick="showTab('hist')">📂 Facturas Guardadas</a></li>
+          <li><a href="#" id="m-sales" onclick="showTab('sales')">📈 Ventas Diarias</a></li>
         </ul>
       </nav>
       <div style="margin-top:auto;">
@@ -135,7 +165,6 @@
       <!-- PANEL GENERAL -->
       <div id="sec-dash">
         <h1 style="margin-bottom:20px; color:var(--text);">Resumen Operativo</h1>
-        
         <div class="grid-3">
           <div class="card">
             <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">TOTAL PRODUCTOS DIVERSOS</span>
@@ -161,8 +190,8 @@
           
           <div style="display:grid; grid-template-columns: 1fr 2fr 1fr 1fr 1fr auto; gap:10px; align-items:end; margin-bottom:12px;">
             <div>
-              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CÓDIGO</label>
-              <input type="text" id="pCode" class="input-sys" placeholder="Ej: 000101">
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CÓDIGO (AUTO)</label>
+              <input type="text" id="pCode" class="input-sys" readonly style="background:#e2e8f0; font-weight:bold;">
             </div>
             <div>
               <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">DESCRIPCIÓN DEL PRODUCTO</label>
@@ -191,7 +220,10 @@
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h3>Productos Registrados</h3>
-            <input type="text" id="searchInv" class="input-sys" placeholder="Buscar producto..." oninput="renderInventoryTable()" style="width:250px;">
+            <div style="display:flex; gap:10px;">
+              <button onclick="removeAllProducts()" style="background:var(--danger); color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">⚠️ Vaciar Catálogo Completo</button>
+              <input type="text" id="searchInv" class="input-sys" placeholder="Buscar producto..." oninput="renderInventoryTable()" style="width:200px;">
+            </div>
           </div>
           
           <table class="table-sys">
@@ -216,12 +248,11 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;" class="no-print">
           <h1>Punto de Facturación</h1>
           <div style="display:flex; gap:10px;">
-            <button class="btn-primary" onclick="nuevaFactura()" style="background:#10b981; width:auto; padding:10px 18px;">+ Nueva Nota (Sig.)</button>
-            <button class="btn-primary" onclick="window.print()" style="width:auto; padding:10px 18px;">🖨️ Imprimir / PDF</button>
+            <button class="btn-primary" onclick="guardarEImprimirNota()" style="background:#10b981; width:auto; padding:10px 18px;">💾 Guardar e Imprimir (2 Copias)</button>
+            <button class="btn-primary" onclick="nuevaFactura()" style="background:var(--accent); width:auto; padding:10px 18px;">+ Nueva Nota Limpia</button>
           </div>
         </div>
 
-        <!-- CONFIGURACIÓN DE FACTURA -->
         <div class="card no-print">
           <h3 style="font-size:0.9rem; margin-bottom:10px;">Encabezado y Control de Fechas</h3>
           <div class="grid-3" style="margin-bottom:12px;">
@@ -250,11 +281,11 @@
           <h3 style="font-size:0.9rem; margin:15px 0 10px 0;">Montos Manuales en Otras Monedas</h3>
           <div class="grid-2" style="margin-bottom:15px;">
             <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE USD (INGRESAR MANUALMENTE)</label>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE USD (MANUAL)</label>
               <input type="number" id="fManualUsd" class="input-sys" placeholder="0.00" step="0.01" oninput="updateFactura()">
             </div>
             <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE BS (INGRESAR MANUALMENTE)</label>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE BS (MANUAL)</label>
               <input type="number" id="fManualBs" class="input-sys" placeholder="0.00" step="0.01" oninput="updateFactura()">
             </div>
           </div>
@@ -271,59 +302,112 @@
           </div>
         </div>
 
-        <!-- VISTA PREVIA FACTURA -->
-        <div class="invoice-preview">
-          <div class="doc-header">
-            <div class="doc-title">Comercializadora Tío Julián</div>
-            <div class="doc-sub">"De la mano de sus clientes"</div>
-            <div class="doc-fiscal">RIF: 164227940 &nbsp;|&nbsp; DIR: Pirineos 1</div>
-            <div style="margin-top:10px; font-weight:800; font-size:0.78rem;">
-              NOTA DE ENTREGA: <span id="fNum">0000001</span> &nbsp;&nbsp; 
-              FECHA EMISIÓN: <span id="fEmision">--/--/----</span> &nbsp;&nbsp; 
-              FECHA VENC: <span id="fVenc">--/--/----</span>
-            </div>
-          </div>
-
-          <div class="doc-client">
-            <div>NOMBRE Y APELLIDO O RAZÓN SOCIAL: <span id="fName">---</span></div>
-            <div>DOMICILIO FISCAL: <span id="fDir">---</span></div>
-            <div>RIF O C.I.: <span id="fRif">---</span> &nbsp;&nbsp;&nbsp;&nbsp; TELÉFONO: <span id="fPhone">---</span></div>
-          </div>
-
-          <table class="doc-table">
-            <thead>
-              <tr>
-                <th style="width:12%;">CÓDIGO</th>
-                <th>DESCRIPCIÓN</th>
-                <th style="text-align:center; width:8%;">IVA</th>
-                <th style="text-align:right; width:10%;">CANT</th>
-                <th style="text-align:right; width:18%;">PRECIO U.</th>
-                <th style="text-align:right; width:18%;">TOTAL</th>
-              </tr>
-            </thead>
-            <tbody id="cartTable"></tbody>
-          </table>
-
-          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:15px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div id="qrcode"></div>
-              <div style="font-size:0.6rem; max-width:140px; line-height:1.2;">
-                Verificación fiscal digital Comercializadora Tío Julián.
+        <!-- HOJA DE IMPRESIÓN (DOS COPIAS MEDIA CARTA) -->
+        <div class="print-sheet">
+          <!-- COPIA 1 -->
+          <div class="invoice-preview">
+            <div class="doc-header">
+              <div class="doc-title">Comercializadora Tío Julián</div>
+              <div class="doc-sub">"De la mano de sus clientes" — ORIGINAL</div>
+              <div class="doc-fiscal">RIF: 164227940 &nbsp;|&nbsp; DIR: Pirineos 1</div>
+              <div style="margin-top:5px; font-weight:800; font-size:0.75rem;">
+                NOTA DE ENTREGA: <span class="lbl-fnum">0000001</span> &nbsp;&nbsp; 
+                EMISIÓN: <span class="lbl-femision">--/--/----</span> &nbsp;&nbsp; 
+                VENC: <span class="lbl-fvenc">--/--/----</span>
               </div>
             </div>
 
-            <div class="doc-totals">
-              <div>BASE EXENTA (0%): <span id="lblExempt">0.00</span> COP</div>
-              <div>BASE IMPONIBLE: <span id="lblSub">0.00</span> COP</div>
-              <div>I.V.A. (16%): <span id="lblIva">0.00</span> COP</div>
-              <div style="font-size:0.95rem; font-weight:900; border-top:1px solid #000; padding-top:2px; margin-top:2px;">
-                MONTO TOTAL COP: <span id="lblTotalCop">0.00</span>
+            <div class="doc-client">
+              <div>CLIENTE: <span class="lbl-fname">---</span></div>
+              <div>DIRECCIÓN: <span class="lbl-fdir">---</span></div>
+              <div>RIF / C.I.: <span class="lbl-frif">---</span> &nbsp;&nbsp;&nbsp;&nbsp; TELÉFONO: <span class="lbl-fphone">---</span></div>
+            </div>
+
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th style="width:15%;">CÓDIGO</th>
+                  <th>DESCRIPCIÓN</th>
+                  <th style="text-align:center; width:8%;">IVA</th>
+                  <th style="text-align:right; width:10%;">CANT</th>
+                  <th style="text-align:right; width:18%;">PRECIO U.</th>
+                  <th style="text-align:right; width:18%;">TOTAL</th>
+                </tr>
+              </thead>
+              <tbody class="cart-table-body"></tbody>
+            </table>
+
+            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="qrcode-box"></div>
+                <div style="font-size:0.55rem; max-width:130px; line-height:1.1;">
+                  Verificación digital Comercializadora Tío Julián.
+                </div>
               </div>
-              <div style="font-size:0.85rem; color:#000; margin-top:3px;">
-                TOTAL EQUIVALENTE USD: $<span id="lblTotalUsd">0.00</span>
+
+              <div class="doc-totals">
+                <div>EXENTO (0%): <span class="lbl-exempt">0.00</span> COP</div>
+                <div>BASE IMPONIBLE: <span class="lbl-sub">0.00</span> COP</div>
+                <div>I.V.A. (16%): <span class="lbl-iva">0.00</span> COP</div>
+                <div style="font-size:0.85rem; font-weight:900; border-top:1px solid #000; padding-top:2px;">
+                  TOTAL COP: <span class="lbl-total-cop">0.00</span>
+                </div>
+                <div style="font-size:0.75rem;">TOTAL USD: $<span class="lbl-total-usd">0.00</span></div>
+                <div style="font-size:0.75rem;">TOTAL BS: <span class="lbl-total-bs">0.00</span> Bs.</div>
               </div>
-              <div style="font-size:0.85rem; color:#000;">
-                TOTAL EQUIVALENTE BS: <span id="lblTotalBs">0.00</span> Bs.
+            </div>
+          </div>
+
+          <!-- COPIA 2 -->
+          <div class="invoice-preview">
+            <div class="doc-header">
+              <div class="doc-title">Comercializadora Tío Julián</div>
+              <div class="doc-sub">"De la mano de sus clientes" — COPIA CLIENTE</div>
+              <div class="doc-fiscal">RIF: 164227940 &nbsp;|&nbsp; DIR: Pirineos 1</div>
+              <div style="margin-top:5px; font-weight:800; font-size:0.75rem;">
+                NOTA DE ENTREGA: <span class="lbl-fnum">0000001</span> &nbsp;&nbsp; 
+                EMISIÓN: <span class="lbl-femision">--/--/----</span> &nbsp;&nbsp; 
+                VENC: <span class="lbl-fvenc">--/--/----</span>
+              </div>
+            </div>
+
+            <div class="doc-client">
+              <div>CLIENTE: <span class="lbl-fname">---</span></div>
+              <div>DIRECCIÓN: <span class="lbl-fdir">---</span></div>
+              <div>RIF / C.I.: <span class="lbl-frif">---</span> &nbsp;&nbsp;&nbsp;&nbsp; TELÉFONO: <span class="lbl-fphone">---</span></div>
+            </div>
+
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th style="width:15%;">CÓDIGO</th>
+                  <th>DESCRIPCIÓN</th>
+                  <th style="text-align:center; width:8%;">IVA</th>
+                  <th style="text-align:right; width:10%;">CANT</th>
+                  <th style="text-align:right; width:18%;">PRECIO U.</th>
+                  <th style="text-align:right; width:18%;">TOTAL</th>
+                </tr>
+              </thead>
+              <tbody class="cart-table-body"></tbody>
+            </table>
+
+            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="qrcode-box"></div>
+                <div style="font-size:0.55rem; max-width:130px; line-height:1.1;">
+                  Verificación digital Comercializadora Tío Julián.
+                </div>
+              </div>
+
+              <div class="doc-totals">
+                <div>EXENTO (0%): <span class="lbl-exempt">0.00</span> COP</div>
+                <div>BASE IMPONIBLE: <span class="lbl-sub">0.00</span> COP</div>
+                <div>I.V.A. (16%): <span class="lbl-iva">0.00</span> COP</div>
+                <div style="font-size:0.85rem; font-weight:900; border-top:1px solid #000; padding-top:2px;">
+                  TOTAL COP: <span class="lbl-total-cop">0.00</span>
+                </div>
+                <div style="font-size:0.75rem;">TOTAL USD: $<span class="lbl-total-usd">0.00</span></div>
+                <div style="font-size:0.75rem;">TOTAL BS: <span class="lbl-total-bs">0.00</span> Bs.</div>
               </div>
             </div>
           </div>
@@ -331,37 +415,123 @@
 
       </div>
 
+      <!-- HISTORIAL DE FACTURAS -->
+      <div id="sec-hist" style="display:none;">
+        <h1 style="margin-bottom:20px;">Historial de Notas de Entrega Emitidas</h1>
+        <div class="card">
+          <table class="table-sys">
+            <thead>
+              <tr>
+                <th>Nº Nota</th>
+                <th>Fecha Emisión</th>
+                <th>Cliente</th>
+                <th>Total COP</th>
+                <th>Total USD</th>
+                <th>Total BS</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="histTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- REPORTES VENTAS DIARIAS -->
+      <div id="sec-sales" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;" class="no-print">
+          <h1>Reporte de Ventas Diarias</h1>
+          <button class="btn-primary" onclick="window.print()" style="width:auto; padding:10px 18px;">🖨️ Imprimir Reporte del Día</button>
+        </div>
+
+        <div class="card no-print">
+          <label style="font-size:0.75rem; font-weight:bold;">SELECCIONAR FECHA DE REPORTE:</label>
+          <input type="date" id="salesDateFilter" class="input-sys" style="width:200px; display:inline-block; margin-left:10px;" onchange="renderDailySales()">
+        </div>
+
+        <div class="card">
+          <h2 id="salesReportTitle" style="font-size:1.1rem; margin-bottom:15px; color:var(--accent);">Ventas del Día</h2>
+          <div class="grid-3" style="margin-bottom:20px;">
+            <div>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">TOTAL NOTAS GENERADAS</span>
+              <h3 id="salesCount" style="font-size:1.5rem;">0</h3>
+            </div>
+            <div>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">TOTAL RECAUDADO COP</span>
+              <h3 id="salesTotalCop" style="font-size:1.5rem; color:var(--success);">$0.00</h3>
+            </div>
+            <div>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">TOTAL ESTIMADO USD / BS</span>
+              <h3 id="salesTotalAlt" style="font-size:1.1rem;">$0.00 / 0.00 Bs</h3>
+            </div>
+          </div>
+
+          <table class="table-sys">
+            <thead>
+              <tr>
+                <th>Nº Nota</th>
+                <th>Cliente</th>
+                <th>Monto COP</th>
+                <th>Monto USD</th>
+                <th>Monto BS</th>
+              </tr>
+            </thead>
+            <tbody id="salesTable"></tbody>
+          </table>
+        </div>
+      </div>
+
     </main>
   </div>
 
   <script>
-    // GENERADOR QR OFFLINE NATIVO
+    // GENERADOR QR OFFLINE EN SVG PURO
     function generateOfflineQR(text) {
       const encodedText = encodeURIComponent(text);
-      return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=65x65&data=${encodedText}" alt="QR Code" width="65" height="65" />`;
+      return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=55x55&data=${encodedText}" alt="QR" width="55" height="55" />`;
     }
 
-    const defaultInv = [
-      { code: '000062', desc: 'CHUPETA BIG BON XXX WHITE URBAN', p1: 17000, p2: 15516, hasIva: true, initialStock: 100, currentStock: 85 },
-      { code: '000220', desc: 'WAFER CHOCOLATE 24UNID', p1: 6500, p2: 6012, hasIva: true, initialStock: 50, currentStock: 42 },
-      { code: '000094', desc: 'MENTA HELADA SUPER 100*3.8gr', p1: 7500, p2: 6948, hasIva: false, initialStock: 200, currentStock: 150 },
-      { code: '000035', desc: 'BIANCHI SNACK CHOCOLORES MANI 50gr', p1: 2200, p2: 1980, hasIva: true, initialStock: 120, currentStock: 90 },
-      { code: '000185', desc: 'TRULULU AROS 70gr', p1: 2200, p2: 1980, hasIva: false, initialStock: 80, currentStock: 65 }
-    ];
-
-    let inventory = JSON.parse(localStorage.getItem('tj_inv_v5')) || defaultInv;
-    let nextNotaNumber = parseInt(localStorage.getItem('tj_nota_num_v2')) || 1;
+    // BASE DE DATOS PERSISTENTE EN LOCALSTORAGE
+    let inventory = JSON.parse(localStorage.getItem('tj_inv_v6')) || [];
+    let invoicesHistory = JSON.parse(localStorage.getItem('tj_invoices_v6')) || [];
+    let nextNotaNumber = parseInt(localStorage.getItem('tj_nota_num_v6')) || 1;
+    let nextProdNum = parseInt(localStorage.getItem('tj_prod_num_v6')) || 1;
     let cart = [];
+
+    // ENRUTADOR RÁPIDO PARA QR PÚBLICO
+    function checkPublicRoute() {
+      if (window.location.hash.startsWith('#verificar')) {
+        const params = new URLSearchParams(window.location.hash.split('?')[1]);
+        const num = params.get('num');
+        const monto = params.get('monto');
+        const fecha = params.get('fecha');
+
+        document.getElementById('pub-num').innerText = num || 'Desconocido';
+        document.getElementById('pub-monto').innerText = monto ? `$${parseFloat(monto).toLocaleString()} COP` : '---';
+        document.getElementById('pub-fecha').innerText = fecha || '---';
+
+        document.getElementById('public-qr-screen').style.display = 'flex';
+      } else {
+        document.getElementById('public-qr-screen').style.display = 'none';
+      }
+    }
+    window.addEventListener('hashchange', checkPublicRoute);
 
     function initDates() {
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
       document.getElementById('fInputEmision').value = todayStr;
+      document.getElementById('salesDateFilter').value = todayStr;
       
       const formattedNum = String(nextNotaNumber).padStart(7, '0');
       document.getElementById('fInputNum').value = formattedNum;
 
+      updateAutoProdCode();
       autoCalculateExpiry();
+    }
+
+    function updateAutoProdCode() {
+      const codeStr = "PROD-" + String(nextProdNum).padStart(4, '0');
+      document.getElementById('pCode').value = codeStr;
     }
 
     function autoCalculateExpiry() {
@@ -394,10 +564,17 @@
       document.getElementById('sec-dash').style.display = tab === 'dash' ? 'block' : 'none';
       document.getElementById('sec-inv').style.display = tab === 'inv' ? 'block' : 'none';
       document.getElementById('sec-pos').style.display = tab === 'pos' ? 'block' : 'none';
+      document.getElementById('sec-hist').style.display = tab === 'hist' ? 'block' : 'none';
+      document.getElementById('sec-sales').style.display = tab === 'sales' ? 'block' : 'none';
 
       document.getElementById('m-dash').className = tab === 'dash' ? 'active' : '';
       document.getElementById('m-inv').className = tab === 'inv' ? 'active' : '';
       document.getElementById('m-pos').className = tab === 'pos' ? 'active' : '';
+      document.getElementById('m-hist').className = tab === 'hist' ? 'active' : '';
+      document.getElementById('m-sales').className = tab === 'sales' ? 'active' : '';
+
+      if (tab === 'sales') renderDailySales();
+      if (tab === 'hist') renderHistoryTable();
     }
 
     function saveProduct() {
@@ -408,50 +585,35 @@
       const stock = parseInt(document.getElementById('pStock').value) || 0;
       const hasIva = document.getElementById('pHasIva').checked;
 
-      if(!code || !desc || isNaN(p1)) return alert("Por favor complete código, descripción y Precio 1.");
+      if(!desc || isNaN(p1)) return alert("Por favor escriba la descripción y el Precio 1.");
 
       inventory.push({ code, desc, p1, p2, hasIva, initialStock: stock, currentStock: stock });
-      localStorage.setItem('tj_inv_v5', JSON.stringify(inventory));
+      nextProdNum++;
       
-      document.getElementById('pCode').value = '';
+      localStorage.setItem('tj_inv_v6', JSON.stringify(inventory));
+      localStorage.setItem('tj_prod_num_v6', nextProdNum);
+
       document.getElementById('pDesc').value = '';
       document.getElementById('pPrice1').value = '';
       document.getElementById('pPrice2').value = '';
       document.getElementById('pStock').value = '50';
 
+      updateAutoProdCode();
       renderAll();
     }
 
-    function editProduct(idx) {
-      const item = inventory[idx];
-      const newDesc = prompt("Descripción del producto:", item.desc);
-      if (newDesc === null) return;
-      
-      const newP1 = prompt("Precio 1 - Detal (COP):", item.p1);
-      if (newP1 === null) return;
-
-      const newP2 = prompt("Precio 2 - Mayor (COP):", item.p2);
-      if (newP2 === null) return;
-
-      const newStock = prompt("Cantidad restante (cuántos quedan):", item.currentStock);
-      if (newStock === null) return;
-
-      const newHasIva = confirm("¿Aplica IVA 16%? (Aceptar = Sí, Cancelar = No)");
-
-      item.desc = newDesc;
-      item.p1 = parseFloat(newP1) || item.p1;
-      item.p2 = parseFloat(newP2) || item.p2;
-      item.currentStock = parseInt(newStock) || item.currentStock;
-      item.hasIva = newHasIva;
-
-      localStorage.setItem('tj_inv_v5', JSON.stringify(inventory));
-      renderAll();
+    function removeAllProducts() {
+      if(confirm("¿Seguro que desea eliminar TODOS los productos registrados del inventario?")) {
+        inventory = [];
+        localStorage.setItem('tj_inv_v6', JSON.stringify(inventory));
+        renderAll();
+      }
     }
 
     function deleteProduct(idx) {
       if(confirm("¿Eliminar este producto?")) {
         inventory.splice(idx, 1);
-        localStorage.setItem('tj_inv_v5', JSON.stringify(inventory));
+        localStorage.setItem('tj_inv_v6', JSON.stringify(inventory));
         renderAll();
       }
     }
@@ -461,6 +623,7 @@
       const pType = document.getElementById('priceType').value;
       const qty = parseFloat(document.getElementById('pQty').value);
 
+      if(!inventory[idx]) return alert("Seleccione un producto válido");
       if(isNaN(qty) || qty <= 0) return alert("Cantidad no válida");
 
       const item = inventory[idx];
@@ -472,15 +635,43 @@
       const selectedPrice = pType === '1' ? item.p1 : item.p2;
 
       item.currentStock -= qty;
-      localStorage.setItem('tj_inv_v5', JSON.stringify(inventory));
+      localStorage.setItem('tj_inv_v6', JSON.stringify(inventory));
 
       cart.push({ code: item.code, desc: item.desc, qty, price: selectedPrice, hasIva: item.hasIva });
       renderAll();
     }
 
+    function guardarEImprimirNota() {
+      if (cart.length === 0) return alert("Añada al menos un producto antes de guardar e imprimir.");
+
+      const numStr = document.getElementById('fInputNum').value;
+      const totalCop = parseFloat(document.querySelector('.lbl-total-cop').innerText.replace(/,/g, '')) || 0;
+      const totalUsd = parseFloat(document.getElementById('fManualUsd').value) || 0;
+      const totalBs = parseFloat(document.getElementById('fManualBs').value) || 0;
+
+      const notaData = {
+        num: numStr,
+        emision: document.getElementById('fInputEmision').value,
+        venc: document.getElementById('fInputVenc').value,
+        client: document.getElementById('fInputName').value || 'CLIENTE GENERAL',
+        dir: document.getElementById('fInputDir').value || 'S/D',
+        rif: document.getElementById('fInputRif').value || 'V-00000000',
+        phone: document.getElementById('fInputPhone').value || 'S/T',
+        cart: [...cart],
+        totalCop,
+        totalUsd,
+        totalBs
+      };
+
+      invoicesHistory.push(notaData);
+      localStorage.setItem('tj_invoices_v6', JSON.stringify(invoicesHistory));
+
+      window.print();
+    }
+
     function nuevaFactura() {
       nextNotaNumber++;
-      localStorage.setItem('tj_nota_num_v2', nextNotaNumber);
+      localStorage.setItem('tj_nota_num_v6', nextNotaNumber);
       cart = [];
       
       document.getElementById('fInputName').value = '';
@@ -495,20 +686,27 @@
     }
 
     function updateFactura() {
-      document.getElementById('fNum').innerText = document.getElementById('fInputNum').value;
-      document.getElementById('fEmision').innerText = document.getElementById('fInputEmision').value;
-      document.getElementById('fVenc').innerText = document.getElementById('fInputVenc').value;
-      
-      document.getElementById('fName').innerText = document.getElementById('fInputName').value || '---';
-      document.getElementById('fDir').innerText = document.getElementById('fInputDir').value || '---';
-      document.getElementById('fRif').innerText = document.getElementById('fInputRif').value || '---';
-      document.getElementById('fPhone').innerText = document.getElementById('fInputPhone').value || '---';
+      const num = document.getElementById('fInputNum').value;
+      const emision = document.getElementById('fInputEmision').value;
+      const venc = document.getElementById('fInputVenc').value;
+      const name = document.getElementById('fInputName').value || '---';
+      const dir = document.getElementById('fInputDir').value || '---';
+      const rif = document.getElementById('fInputRif').value || '---';
+      const phone = document.getElementById('fInputPhone').value || '---';
+
+      document.querySelectorAll('.lbl-fnum').forEach(el => el.innerText = num);
+      document.querySelectorAll('.lbl-femision').forEach(el => el.innerText = emision);
+      document.querySelectorAll('.lbl-fvenc').forEach(el => el.innerText = venc);
+      document.querySelectorAll('.lbl-fname').forEach(el => el.innerText = name);
+      document.querySelectorAll('.lbl-fdir').forEach(el => el.innerText = dir);
+      document.querySelectorAll('.lbl-frif').forEach(el => el.innerText = rif);
+      document.querySelectorAll('.lbl-fphone').forEach(el => el.innerText = phone);
 
       const manualUsd = parseFloat(document.getElementById('fManualUsd').value) || 0;
       const manualBs = parseFloat(document.getElementById('fManualBs').value) || 0;
 
-      document.getElementById('lblTotalUsd').innerText = manualUsd.toLocaleString('en-US', {minimumFractionDigits: 2});
-      document.getElementById('lblTotalBs').innerText = manualBs.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.querySelectorAll('.lbl-total-usd').forEach(el => el.innerText = manualUsd.toLocaleString('en-US', {minimumFractionDigits: 2}));
+      document.querySelectorAll('.lbl-total-bs').forEach(el => el.innerText = manualBs.toLocaleString('en-US', {minimumFractionDigits: 2}));
     }
 
     function renderInventoryTable() {
@@ -532,12 +730,10 @@
                 <span style="font-weight:bold; color: ${item.currentStock > 5 ? 'var(--accent)' : 'var(--danger)'};">
                   ${item.currentStock} disponibles
                 </span>
-                <span style="font-size:0.75rem; color:var(--text-muted); display:block;">Inicial: ${item.initialStock || item.currentStock}</span>
               </td>
               <td><strong>$${item.p1.toLocaleString()} COP</strong></td>
               <td><strong>$${item.p2.toLocaleString()} COP</strong></td>
               <td>
-                <button onclick="editProduct(${idx})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:700; margin-right:8px;">Editar</button>
                 <button onclick="deleteProduct(${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:700;">Eliminar</button>
               </td>
             </tr>
@@ -547,8 +743,8 @@
     }
 
     function renderCart() {
-      const tbody = document.getElementById('cartTable');
-      tbody.innerHTML = '';
+      const tbodies = document.querySelectorAll('.cart-table-body');
+      tbodies.forEach(tb => tb.innerHTML = '');
       
       let baseExempt = 0;
       let baseImponibleTotal = 0;
@@ -561,7 +757,7 @@
           baseExempt += itemTotal;
         }
 
-        tbody.innerHTML += `
+        const rowHTML = `
           <tr>
             <td>${item.code}</td>
             <td>${item.desc}</td>
@@ -571,22 +767,98 @@
             <td style="text-align:right;">${itemTotal.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
           </tr>
         `;
+        tbodies.forEach(tb => tb.innerHTML += rowHTML);
       });
 
       const baseImponible = baseImponibleTotal / 1.16;
       const iva = baseImponibleTotal - baseImponible;
       const grandTotal = baseExempt + baseImponibleTotal;
 
-      document.getElementById('lblExempt').innerText = baseExempt.toLocaleString('en-US', {minimumFractionDigits: 2});
-      document.getElementById('lblSub').innerText = baseImponible.toLocaleString('en-US', {minimumFractionDigits: 2});
-      document.getElementById('lblIva').innerText = iva.toLocaleString('en-US', {minimumFractionDigits: 2});
-      document.getElementById('lblTotalCop').innerText = grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.querySelectorAll('.lbl-exempt').forEach(el => el.innerText = baseExempt.toLocaleString('en-US', {minimumFractionDigits: 2}));
+      document.querySelectorAll('.lbl-sub').forEach(el => el.innerText = baseImponible.toLocaleString('en-US', {minimumFractionDigits: 2}));
+      document.querySelectorAll('.lbl-iva').forEach(el => el.innerText = iva.toLocaleString('en-US', {minimumFractionDigits: 2}));
+      document.querySelectorAll('.lbl-total-cop').forEach(el => el.innerText = grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2}));
 
-      // GENERACIÓN DE QR VERIFICABLE
-      const qrData = `https://comercializadoratiojulian.com/verificar?num=${document.getElementById('fInputNum').value}&monto=${grandTotal}`;
-      document.getElementById("qrcode").innerHTML = generateOfflineQR(qrData);
+      // URL DEL QR PÚBLICO
+      const currentOrigin = window.location.href.split('#')[0];
+      const qrPublicUrl = `${currentOrigin}#verificar?num=${document.getElementById('fInputNum').value}&monto=${grandTotal}&fecha=${document.getElementById('fInputEmision').value}`;
+      
+      document.querySelectorAll(".qrcode-box").forEach(box => {
+        box.innerHTML = generateOfflineQR(qrPublicUrl);
+      });
 
       updateFactura();
+    }
+
+    function renderHistoryTable() {
+      const tbody = document.getElementById('histTable');
+      tbody.innerHTML = '';
+
+      invoicesHistory.slice().reverse().forEach(inv => {
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${inv.num}</strong></td>
+            <td>${inv.emision}</td>
+            <td>${inv.client}</td>
+            <td><strong>$${inv.totalCop.toLocaleString()} COP</strong></td>
+            <td>$${inv.totalUsd.toFixed(2)} USD</td>
+            <td>${inv.totalBs.toFixed(2)} Bs</td>
+            <td>
+              <button onclick="reimprimirNota('${inv.num}')" style="background:var(--accent); color:#fff; border:none; padding:4px 10px; border-radius:4px; cursor:pointer;">Ver / Imprimir</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function reimprimirNota(num) {
+      const inv = invoicesHistory.find(i => i.num === num);
+      if(!inv) return;
+
+      document.getElementById('fInputNum').value = inv.num;
+      document.getElementById('fInputEmision').value = inv.emision;
+      document.getElementById('fInputVenc').value = inv.venc;
+      document.getElementById('fInputName').value = inv.client;
+      document.getElementById('fInputDir').value = inv.dir;
+      document.getElementById('fInputRif').value = inv.rif;
+      document.getElementById('fInputPhone').value = inv.phone;
+      document.getElementById('fManualUsd').value = inv.totalUsd;
+      document.getElementById('fManualBs').value = inv.totalBs;
+      
+      cart = inv.cart;
+      showTab('pos');
+      renderCart();
+    }
+
+    function renderDailySales() {
+      const selectedDate = document.getElementById('salesDateFilter').value;
+      const tbody = document.getElementById('salesTable');
+      tbody.innerHTML = '';
+
+      const filtered = invoicesHistory.filter(i => i.emision === selectedDate);
+      
+      let totalCop = 0, totalUsd = 0, totalBs = 0;
+
+      filtered.forEach(inv => {
+        totalCop += inv.totalCop;
+        totalUsd += inv.totalUsd;
+        totalBs += inv.totalBs;
+
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${inv.num}</strong></td>
+            <td>${inv.client}</td>
+            <td>$${inv.totalCop.toLocaleString()} COP</td>
+            <td>$${inv.totalUsd.toFixed(2)} USD</td>
+            <td>${inv.totalBs.toFixed(2)} Bs</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('salesReportTitle').innerText = `Ventas del Día (${selectedDate})`;
+      document.getElementById('salesCount').innerText = filtered.length;
+      document.getElementById('salesTotalCop').innerText = '$' + totalCop.toLocaleString('en-US', {minimumFractionDigits:2}) + ' COP';
+      document.getElementById('salesTotalAlt').innerText = `$${totalUsd.toFixed(2)} USD / ${totalBs.toFixed(2)} Bs`;
     }
 
     function renderAll() {
@@ -607,6 +879,9 @@
       renderInventoryTable();
       renderCart();
     }
+
+    // INICIALIZAR VERIFICACIÓN AL CARGAR
+    checkPublicRoute();
   </script>
 </body>
 </html>
