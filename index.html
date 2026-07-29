@@ -3,144 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comercializadora Tío Julián — Sistema Administrativo ADN</title>
+  <title>Comercializadora Tío Julián</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
-    /* ========================================================= */
-    /* ESTILO PREMIUM ADN SOFTWARE (ELEGANTE, MINIMALISTA, AZUL) */
-    /* ========================================================= */
     :root {
-      --bg-main: #0b1120;
-      --bg-card: #151e32;
-      --bg-input: #0f172a;
-      --border-color: #1e293b;
-      --border-focus: #3b82f6;
-      --accent-blue: #2563eb;
-      --accent-hover: #1d4ed8;
-      --accent-light: #38bdf8;
-      --text-white: #f8fafc;
-      --text-muted: #94a3b8;
+      --bg-main: #f0f7ff;
+      --bg-card: #ffffff;
+      --bg-input: #f8fafc;
+      --border: #cbd5e1;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --accent-light: #e0f2fe;
+      --text: #0f172a;
+      --text-muted: #64748b;
       --danger: #ef4444;
       --success: #10b981;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text-white); font-size: 0.9rem; min-height: 100vh; display: flex; overflow: hidden; }
+    body { background-color: var(--bg-main); color: var(--text); font-size: 0.88rem; min-height: 100vh; display: flex; overflow: hidden; }
 
-    /* PANTALLA DE LOGIN */
+    /* LOGIN */
     #login-screen {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: radial-gradient(circle at center, #151e32 0%, #0b1120 100%);
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
       display: flex; justify-content: center; align-items: center; z-index: 9999;
     }
     .login-card {
-      background: rgba(21, 30, 50, 0.8);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 40px; width: 100%; max-width: 380px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-      text-align: center;
+      background: #ffffff; border-radius: 16px; padding: 40px; width: 100%; max-width: 380px;
+      text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15);
     }
-    .login-brand { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 5px; color: #fff; }
-    .login-sub { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 30px; }
-
-    .form-group { text-align: left; margin-bottom: 20px; }
-    .form-group label { display: block; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; letter-spacing: 0.5px; }
-    
-    .input-adn {
-      width: 100%; background: var(--bg-input); border: 1px solid var(--border-color);
-      color: #fff; padding: 12px 14px; border-radius: 8px; font-size: 0.9rem; outline: none; transition: all 0.2s;
+    .input-sys {
+      width: 100%; background: var(--bg-input); border: 1px solid var(--border);
+      color: var(--text); padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; outline: none; margin-top: 4px;
     }
-    .input-adn:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+    .input-sys:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+    .btn-primary { width: 100%; background: var(--accent); color: #fff; border: none; padding: 11px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-primary:hover { background: var(--accent-hover); }
 
-    .btn-adn-primary {
-      width: 100%; background: var(--accent-blue); color: #fff; border: none; padding: 12px;
-      border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;
-    }
-    .btn-adn-primary:hover { background: var(--accent-hover); }
-
-    /* NAVEGACIÓN Y PANEL PRINCIPAL DE ADN SOFTWARE */
+    /* LAYOUT APLICACIÓN */
     #app-container { display: none; width: 100%; height: 100vh; flex-direction: row; }
+    aside { width: 250px; background: #ffffff; border-right: 1px solid var(--border); padding: 25px 20px; display: flex; flex-direction: column; gap: 25px; }
+    .brand { font-size: 1.15rem; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 10px; }
     
-    aside { width: 260px; background: var(--bg-card); border-right: 1px solid var(--border-color); padding: 25px 20px; display: flex; flex-direction: column; gap: 30px; }
-    .app-logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.05rem; }
-    .app-logo i { color: var(--accent-light); }
+    nav ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    nav a { color: var(--text-muted); text-decoration: none; padding: 12px 14px; border-radius: 8px; display: flex; align-items: center; gap: 10px; font-weight: 600; }
+    nav a.active, nav a:hover { background: var(--accent-light); color: var(--accent); }
 
-    nav ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-    nav a {
-      color: var(--text-muted); text-decoration: none; padding: 12px 14px; border-radius: 8px;
-      display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: 0.88rem; transition: all 0.2s;
+    main { flex: 1; padding: 30px; overflow-y: auto; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+
+    /* TABLAS */
+    .table-sys { width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px; }
+    .table-sys th { background: #f1f5f9; padding: 10px; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; border-bottom: 2px solid var(--border); }
+    .table-sys td { padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    
+    .badge { padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
+    .badge-iva { background: #dcfce7; color: #15803d; }
+    .badge-exempt { background: #fef3c7; color: #b45309; }
+
+    /* FACTURA EN PAPEL */
+    .invoice-preview {
+      background: #fff; color: #000; padding: 35px; max-width: 730px; margin: 0 auto;
+      font-family: 'Courier New', Courier, monospace; border: 1px solid #000; box-shadow: 0 10px 25px rgba(0,0,0,0.08);
     }
-    nav a.active, nav a:hover { background: rgba(37, 99, 235, 0.15); color: var(--accent-light); }
+    .doc-header { text-align: center; margin-bottom: 15px; }
+    .doc-title { font-weight: 900; font-size: 1.3rem; font-family: sans-serif; text-transform: uppercase; color: #000; }
+    .doc-sub { font-size: 0.8rem; font-family: sans-serif; font-weight: 600; font-style: italic; }
+    .doc-fiscal { font-size: 0.75rem; font-family: sans-serif; margin-top: 2px; }
 
-    main { flex: 1; padding: 35px; overflow-y: auto; }
-    .header-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .header-title h1 { font-size: 1.4rem; font-weight: 700; }
+    .doc-client { border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 8px 0; margin: 12px 0; font-size: 0.78rem; font-weight: 700; line-height: 1.4; text-transform: uppercase; }
+    .doc-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 15px; }
+    .doc-table th { border-bottom: 1px solid #000; text-align: left; padding: 4px 0; }
+    .doc-table td { padding: 4px 0; }
 
-    /* PÁNELES / CARDS */
-    .panel-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; margin-bottom: 25px; }
-    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .doc-totals { text-align: right; font-size: 0.8rem; font-weight: 800; line-height: 1.4; border-top: 1px solid #000; padding-top: 6px; }
 
-    /* TABLA ESTILO ADN SOFTWARE */
-    .adn-table { width: 100%; border-collapse: collapse; text-align: left; }
-    .adn-table th { background: var(--bg-input); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
-    .adn-table td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
-
-    /* FORMATO DE LA FACTURA FÍSICA PARA IMPRESIÓN / PDF (CALCADA DE LA FOTO) */
-    .invoice-paper-preview {
-      background: #ffffff; color: #000000; padding: 35px; max-width: 720px; margin: 0 auto;
-      border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-family: 'Courier New', Courier, monospace;
-    }
-
-    .doc-header-block { text-align: center; margin-bottom: 15px; }
-    .doc-title { font-weight: 900; font-size: 1.3rem; text-transform: uppercase; font-family: sans-serif; }
-    .doc-slogan { font-weight: 600; font-size: 0.8rem; font-family: sans-serif; font-style: italic; }
-    .doc-fiscal { font-size: 0.78rem; font-family: sans-serif; margin-top: 3px; }
-
-    .doc-client-grid { font-size: 0.78rem; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 8px 0; margin: 15px 0; line-height: 1.4; font-weight: 700; text-transform: uppercase; }
-
-    .doc-table-print { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 15px; }
-    .doc-table-print th { border-bottom: 1px solid #000; text-align: left; padding: 4px 0; }
-    .doc-table-print td { padding: 4px 0; }
-
-    .doc-totals { text-align: right; font-size: 0.8rem; font-weight: 700; line-height: 1.5; border-top: 1px solid #000; padding-top: 8px; }
-
-    /* IMPRESIÓN MÁGICA */
     @media print {
       body { background: #fff !important; color: #000 !important; }
       #login-screen, aside, .no-print { display: none !important; }
       #app-container { display: block !important; }
       main { padding: 0 !important; }
-      .invoice-paper-preview { box-shadow: none !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
-      @page { size: auto; margin: 6mm; }
+      .invoice-preview { border: none !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; box-shadow: none !important; }
+      @page { size: auto; margin: 5mm; }
     }
   </style>
 </head>
 <body>
 
-  <!-- PANTALLA DE INICIO DE SESIÓN RESTRENGIDO -->
+  <!-- LOGIN RESTRINGIDO -->
   <div id="login-screen">
     <div class="login-card">
-      <div class="login-brand">TIHO JULIÁN</div>
-      <div class="login-sub">Sistema Administrativo ADN Software</div>
+      <h2 style="margin-bottom: 5px; color: var(--accent);">TÍO JULIÁN</h2>
+      <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 25px;">Sistema Administrativo Intuitivo</p>
       
-      <!-- DESACTIVADO AUTOCOMPLETE TOTAL -->
-      <form onsubmit="autenticarUsuario(event)" autocomplete="off">
-        <!-- Campos falsos para engañar el autocompletado de navegadores -->
-        <input type="text" style="display:none" name="fakeusernameremembered"/>
-        <input type="password" style="display:none" name="fakepasswordremembered"/>
-
-        <div class="form-group">
-          <label>Usuario</label>
-          <input type="text" id="userInput" class="input-adn" placeholder="Ingrese usuario" autocomplete="off" required>
+      <form onsubmit="login(event)" autocomplete="off">
+        <div style="text-align:left; margin-bottom:15px;">
+          <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">USUARIO</label>
+          <input type="text" id="userInput" class="input-sys" autocomplete="off" required>
         </div>
-        <div class="form-group">
-          <label>Contraseña</label>
-          <input type="password" id="passInput" class="input-adn" placeholder="••••••••" autocomplete="off" required>
+        <div style="text-align:left; margin-bottom:20px;">
+          <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">CONTRASEÑA</label>
+          <input type="password" id="passInput" class="input-sys" autocomplete="off" required>
         </div>
-        <button type="submit" class="btn-adn-primary">Ingresar al Sistema</button>
+        <button type="submit" class="btn-primary">Ingresar al Sistema</button>
       </form>
     </div>
   </div>
@@ -148,154 +118,218 @@
   <!-- APLICACIÓN PRINCIPAL -->
   <div id="app-container">
     <aside>
-      <div class="app-logo">
-        <i data-lucide="layers"></i>
-        <span>TÍO JULIÁN ADN</span>
+      <div class="brand">
+        <i data-lucide="shopping-bag" style="width:24px; height:24px;"></i>
+        <span>TÍO JULIÁN</span>
       </div>
       <nav>
         <ul>
-          <li><a href="#" id="m-dash" class="active" onclick="switchTab('dash')"><i data-lucide="layout-dashboard"></i> Panel General</a></li>
-          <li><a href="#" id="m-inv" onclick="switchTab('inv')"><i data-lucide="box"></i> Inventario</a></li>
-          <li><a href="#" id="m-pos" onclick="switchTab('pos')"><i data-lucide="file-plus-2"></i> Crear Factura</a></li>
+          <li><a href="#" id="m-dash" class="active" onclick="showTab('dash')"><i data-lucide="layout-dashboard"></i> Panel General</a></li>
+          <li><a href="#" id="m-inv" onclick="showTab('inv')"><i data-lucide="boxes"></i> Inventario</a></li>
+          <li><a href="#" id="m-pos" onclick="showTab('pos')"><i data-lucide="file-text"></i> Facturación</a></li>
         </ul>
       </nav>
-      <div style="margin-top: auto;">
-        <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.8rem; display:flex; align-items:center; gap:8px;">
-          <i data-lucide="log-out" style="width:16px;"></i> Cerrar Sesión
+      <div style="margin-top:auto;">
+        <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.85rem; font-weight:700; display:flex; align-items:center; gap:6px;">
+          <i data-lucide="log-out" style="width:16px;"></i> Salir
         </button>
       </div>
     </aside>
 
     <main>
       
-      <!-- SECCIÓN: PANEL GENERAL -->
+      <!-- PANEL GENERAL -->
       <div id="sec-dash">
-        <div class="header-title">
-          <h1>Resumen Operativo</h1>
-          <span style="color: var(--text-muted); font-size: 0.85rem;">Comercializadora Tío Julián C.A.</span>
+        <h1 style="margin-bottom:20px; color:var(--text);">Resumen Operativo</h1>
+        
+        <div class="grid-3">
+          <div class="card">
+            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">TOTAL PRODUCTOS</span>
+            <h2 id="dash-count" style="font-size:2rem; margin-top:5px; color:var(--accent);">0</h2>
+          </div>
+          <div class="card">
+            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">VALOR INVENTARIO (COP)</span>
+            <h2 id="dash-val" style="font-size:2rem; margin-top:5px; color:var(--success);">$0.00</h2>
+          </div>
+          <div class="card">
+            <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">FACTURAS EMITIDAS</span>
+            <h2 id="dash-invoices" style="font-size:2rem; margin-top:5px; color:var(--accent);">0</h2>
+          </div>
         </div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-          <div class="panel-card">
-            <span style="color: var(--text-muted); font-size: 0.78rem;">Productos Registrados</span>
-            <h2 id="dash-prod-count" style="font-size: 1.8rem; margin-top: 10px;">0</h2>
-          </div>
-          <div class="panel-card">
-            <span style="color: var(--text-muted); font-size: 0.78rem;">Estatus de Conexión</span>
-            <h2 style="font-size: 1.8rem; margin-top: 10px; color: var(--success);">En Línea</h2>
-          </div>
-          <div class="panel-card">
-            <span style="color: var(--text-muted); font-size: 0.78rem;">Versión del Sistema</span>
-            <h2 style="font-size: 1.8rem; margin-top: 10px; color: var(--accent-light);">ADN v2.4</h2>
+
+        <div class="card">
+          <h3 style="margin-bottom:10px;">Configuración de Tasas de Cambio</h3>
+          <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:15px;">Establece los valores para realizar las conversiones automáticas de moneda:</p>
+          <div class="grid-2">
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">TASA COP POR DÓLAR (USD)</label>
+              <input type="number" id="rateUsd" class="input-sys" value="4000" onchange="renderAll()">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">TASA PESOS (COP) POR BOLÍVAR (BS)</label>
+              <input type="number" id="rateBs" class="input-sys" value="100" onchange="renderAll()">
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- SECCIÓN: INVENTARIO -->
-      <div id="sec-inv" style="display: none;">
-        <div class="header-title">
-          <h1>Gestión de Inventario</h1>
-        </div>
+      <!-- INVENTARIO AVANZADO Y MULTIMONEDA -->
+      <div id="sec-inv" style="display:none;">
+        <h1 style="margin-bottom:20px;">Gestión de Inventario Multimoneda</h1>
         
-        <div class="panel-card">
-          <h3 style="font-size: 0.95rem; margin-bottom: 15px;">Registrar Nuevo Artículo</h3>
-          <div style="display: grid; grid-template-columns: 1fr 2fr 1fr 1fr; gap: 15px;">
-            <input type="text" id="addCode" class="input-adn" placeholder="Código (ej: 000062)">
-            <input type="text" id="addDesc" class="input-adn" placeholder="Descripción del Producto">
-            <input type="number" id="addPrice" class="input-adn" placeholder="Precio U. ($/COP)">
-            <button onclick="guardarProducto()" class="btn-adn-primary">+ Guardar</button>
+        <div class="card">
+          <h3 style="margin-bottom:15px; font-size:0.95rem;">Registrar Nuevo Producto</h3>
+          
+          <div style="display:grid; grid-template-columns: 1fr 2fr 1fr 1fr auto; gap:10px; align-items:end; margin-bottom:12px;">
+            <div>
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CÓDIGO</label>
+              <input type="text" id="pCode" class="input-sys" placeholder="Ej: 000101">
+            </div>
+            <div>
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">DESCRIPCIÓN DEL PRODUCTO</label>
+              <input type="text" id="pDesc" class="input-sys" placeholder="Nombre completo del artículo">
+            </div>
+            <div>
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 1 DETAL (COP)</label>
+              <input type="number" id="pPrice1" class="input-sys" placeholder="0.00">
+            </div>
+            <div>
+              <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 2 MAYOR (COP)</label>
+              <input type="number" id="pPrice2" class="input-sys" placeholder="0.00">
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; padding-bottom:8px;">
+              <input type="checkbox" id="pHasIva" style="width:18px; height:18px; cursor:pointer;" checked>
+              <label for="pHasIva" style="font-size:0.8rem; font-weight:700; cursor:pointer;">Aplica IVA (16%)</label>
+            </div>
           </div>
+          <button onclick="saveProduct()" class="btn-primary" style="width:100%;">+ Guardar Producto en Inventario</button>
         </div>
 
-        <div class="panel-card">
-          <table class="adn-table">
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3>Productos Registrados</h3>
+            <input type="text" id="searchInv" class="input-sys" placeholder="Buscar producto..." oninput="renderInventoryTable()" style="width:250px;">
+          </div>
+          
+          <table class="table-sys">
             <thead>
               <tr>
                 <th>Código</th>
                 <th>Descripción</th>
-                <th>Precio Unitario</th>
+                <th>Impuesto</th>
+                <th>Precio 1 - Detal (COP / USD / BS)</th>
+                <th>Precio 2 - Mayor (COP / USD / BS)</th>
                 <th>Acción</th>
               </tr>
             </thead>
-            <tbody id="invTableBody"></tbody>
+            <tbody id="invTable"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- SECCIÓN: CREAR FACTURA Y EMISIÓN -->
-      <div id="sec-pos" style="display: none;">
-        <div class="header-title no-print">
+      <!-- FACTURACIÓN -->
+      <div id="sec-pos" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;" class="no-print">
           <h1>Punto de Facturación</h1>
-          <button class="btn-adn-primary" onclick="procesarEImprimir()" style="width: auto; padding: 10px 20px;">
-            <i data-lucide="printer" style="width:16px; display:inline-block; vertical-align:middle;"></i> Emitir e Imprimir Factura
+          <button class="btn-primary" onclick="window.print()" style="width:auto; padding:10px 22px;">
+            <i data-lucide="printer" style="width:16px; display:inline-block; vertical-align:middle;"></i> Imprimir / PDF
           </button>
         </div>
 
-        <!-- FORMULARIO DE CLIENTE -->
-        <div class="panel-card no-print">
-          <h3 style="font-size: 0.95rem; margin-bottom: 15px;">Datos Fiscales del Cliente</h3>
-          <div style="display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-            <input type="text" id="cliName" class="input-adn" value="NEREIDA YUSMARY MORENO ANGARITA">
-            <input type="text" id="cliDir" class="input-adn" value="PORTICO VIA PRINCIPAL">
-            <input type="text" id="cliRif" class="input-adn" value="V-19000000">
-            <input type="text" id="cliPhone" class="input-adn" value="0426-3792057">
-          </div>
-
-          <h3 style="font-size: 0.95rem; margin: 20px 0 10px 0;">Añadir Productos a la Factura</h3>
-          <div style="display: flex; gap: 15px;">
-            <select id="prodSelector" class="input-adn" style="flex: 1;"></select>
-            <input type="number" id="prodQty" class="input-adn" value="1" style="width: 100px;">
-            <button onclick="agregarAlCarrito()" class="btn-adn-primary" style="width: auto;">Añadir Artículo</button>
-          </div>
-        </div>
-
-        <!-- VISTA PREVIA / DOCUMENTO DE IMPRESIÓN (IGUAL A LA FOTO) -->
-        <div class="invoice-paper-preview">
-          
-          <div class="doc-header-block">
-            <div class="doc-title">Comercializadora Tío Julián</div>
-            <div class="doc-slogan">"De la mano de sus clientes"</div>
-            <div class="doc-fiscal">RIF: 164227940 &nbsp;|&nbsp; DIR: Pirineos 1</div>
-            <div style="font-size: 0.78rem; font-weight: bold; margin-top: 10px;">
-              NOTA DE ENTREGA / FACTURA: <span id="fNum">0000752</span> &nbsp;&nbsp;&nbsp; FECHA: <span id="fFecha">17/07/2026</span>
+        <!-- CONFIGURACIÓN DE FACTURA -->
+        <div class="card no-print">
+          <h3 style="font-size:0.9rem; margin-bottom:10px;">Encabezado y Control de Fechas</h3>
+          <div class="grid-3" style="margin-bottom:12px;">
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">Nº NOTA DE ENTREGA</label>
+              <input type="text" id="fInputNum" class="input-sys" value="0000752" oninput="updateFactura()">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FECHA DE EMISIÓN</label>
+              <input type="date" id="fInputEmision" class="input-sys" onchange="updateFactura()">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FECHA DE VENCIMIENTO</label>
+              <input type="date" id="fInputVenc" class="input-sys" onchange="updateFactura()">
             </div>
           </div>
 
-          <div class="doc-client-grid">
-            <div>RAZÓN SOCIAL: <span id="lblCliName">NEREIDA YUSMARY MORENO ANGARITA</span></div>
-            <div>DOMICILIO FISCAL: <span id="lblCliDir">PORTICO VIA PRINCIPAL</span></div>
-            <div>RIF/C.I.: <span id="lblCliRif">V-19000000</span> &nbsp;&nbsp;&nbsp;&nbsp; TELÉFONO: <span id="lblCliPhone">0426-3792057</span></div>
+          <h3 style="font-size:0.9rem; margin:15px 0 10px 0;">Datos del Cliente</h3>
+          <div class="grid-2" style="margin-bottom:15px;">
+            <input type="text" id="fInputName" class="input-sys" value="NEREIDA YUSMARY MORENO ANGARITA" placeholder="Razón Social / Nombre" oninput="updateFactura()">
+            <input type="text" id="fInputDir" class="input-sys" value="PORTICO VIA PRINCIPAL" placeholder="Dirección Fiscal" oninput="updateFactura()">
+            <input type="text" id="fInputRif" class="input-sys" value="V-19000000" placeholder="RIF / C.I." oninput="updateFactura()">
+            <input type="text" id="fInputPhone" class="input-sys" value="0426-3792057" placeholder="Teléfono" oninput="updateFactura()">
           </div>
 
-          <table class="doc-table-print">
+          <h3 style="font-size:0.9rem; margin-bottom:10px;">Añadir Ítem a la Nota</h3>
+          <div style="display:flex; gap:10px;">
+            <select id="pSelect" class="input-sys" style="flex:2;"></select>
+            <select id="priceType" class="input-sys" style="flex:1;">
+              <option value="1">Precio 1 (Detal)</option>
+              <option value="2">Precio 2 (Mayor)</option>
+            </select>
+            <input type="number" id="pQty" class="input-sys" value="1" style="width:90px;">
+            <button onclick="addToCart()" class="btn-primary" style="width:auto; padding:0 20px;">+ Añadir</button>
+          </div>
+        </div>
+
+        <!-- VISTA PREVIA IMPRESIÓN IMPRESA DE FACTURA -->
+        <div class="invoice-preview">
+          <div class="doc-header">
+            <div class="doc-title">Comercializadora Tío Julián</div>
+            <div class="doc-sub">"De la mano de sus clientes"</div>
+            <div class="doc-fiscal">RIF: 164227940 &nbsp;|&nbsp; DIR: Pirineos 1</div>
+            <div style="margin-top:10px; font-weight:800; font-size:0.78rem;">
+              NOTA DE ENTREGA: <span id="fNum">0000752</span> &nbsp;&nbsp; 
+              FECHA EMISIÓN: <span id="fEmision">--/--/----</span> &nbsp;&nbsp; 
+              FECHA VENC: <span id="fVenc">--/--/----</span>
+            </div>
+          </div>
+
+          <div class="doc-client">
+            <div>NOMBRE Y APELLIDO O RAZÓN SOCIAL: <span id="fName">---</span></div>
+            <div>DOMICILIO FISCAL: <span id="fDir">---</span></div>
+            <div>RIF O C.I.: <span id="fRif">---</span> &nbsp;&nbsp;&nbsp;&nbsp; TELÉFONO: <span id="fPhone">---</span></div>
+          </div>
+
+          <table class="doc-table">
             <thead>
               <tr>
-                <th style="width: 12%;">CÓDIGO</th>
+                <th style="width:12%;">CÓDIGO</th>
                 <th>DESCRIPCIÓN</th>
-                <th style="text-align: right; width: 10%;">CANT</th>
-                <th style="text-align: right; width: 18%;">PRECIO U.</th>
-                <th style="text-align: right; width: 18%;">TOTAL</th>
+                <th style="text-align:center; width:8%;">IVA</th>
+                <th style="text-align:right; width:10%;">CANT</th>
+                <th style="text-align:right; width:18%;">PRECIO U.</th>
+                <th style="text-align:right; width:18%;">TOTAL</th>
               </tr>
             </thead>
-            <tbody id="cartTableBody"></tbody>
+            <tbody id="cartTable"></tbody>
           </table>
 
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:15px;">
+            <div style="display:flex; align-items:center; gap:10px;">
               <div id="qrcode"></div>
-              <div style="font-size: 0.62rem; max-width: 160px; line-height: 1.2;">
-                Documento fiscal emitido por Comercializadora Tío Julián. Validez digital consultable mediante QR.
+              <div style="font-size:0.6rem; max-width:140px; line-height:1.2;">
+                Verificación fiscal digital Comercializadora Tío Julián.
               </div>
             </div>
 
             <div class="doc-totals">
-              <div>SUBTOTAL / BASE: <span id="lblSub">0.00</span></div>
-              <div>IVA (16%): <span id="lblIva">0.00</span></div>
-              <div style="font-size: 0.95rem; font-weight: 900; border-top: 1px solid #000; padding-top: 3px; margin-top: 3px;">
-                MONTO TOTAL COP: <span id="lblTotal">0.00</span>
+              <div>BASE EXENTA (0%): <span id="lblExempt">0.00</span> COP</div>
+              <div>BASE IMPONIBLE: <span id="lblSub">0.00</span> COP</div>
+              <div>I.V.A. (16%): <span id="lblIva">0.00</span> COP</div>
+              <div style="font-size:0.95rem; font-weight:900; border-top:1px solid #000; padding-top:2px; margin-top:2px;">
+                MONTO TOTAL COP: <span id="lblTotalCop">0.00</span>
+              </div>
+              <div style="font-size:0.85rem; color:#000; margin-top:3px;">
+                TOTAL EQUIVALENTE USD: $<span id="lblTotalUsd">0.00</span>
+              </div>
+              <div style="font-size:0.85rem; color:#000;">
+                TOTAL EQUIVALENTE BS: <span id="lblTotalBs">0.00</span> Bs.
               </div>
             </div>
           </div>
-
         </div>
 
       </div>
@@ -306,41 +340,36 @@
   <script>
     lucide.createIcons();
 
-    // DATOS DE PRUEBA INICIALES IGUALES A TU FOTO
-    const defaultInventory = [
-      { code: '000062', desc: 'CHUPETA BIG BON XXX WHITE URBAN', price: 15516 },
-      { code: '000220', desc: 'WAFER CHOCOLATE 24UNID', price: 6012 },
-      { code: '000094', desc: 'MENTA HELADA SUPER 100*3.8gr', price: 6948 },
-      { code: '000035', desc: 'BIANCHI SNACK CHOCOLORES MANI 50gr', price: 1980 },
-      { code: '000185', desc: 'TRULULU AROS 70gr', price: 1980 }
+    const defaultInv = [
+      { code: '000062', desc: 'CHUPETA BIG BON XXX WHITE URBAN', p1: 17000, p2: 15516, hasIva: true },
+      { code: '000220', desc: 'WAFER CHOCOLATE 24UNID', p1: 6500, p2: 6012, hasIva: true },
+      { code: '000094', desc: 'MENTA HELADA SUPER 100*3.8gr', p1: 7500, p2: 6948, hasIva: false },
+      { code: '000035', desc: 'BIANCHI SNACK CHOCOLORES MANI 50gr', p1: 2200, p2: 1980, hasIva: true },
+      { code: '000185', desc: 'TRULULU AROS 70gr', p1: 2200, p2: 1980, hasIva: false }
     ];
 
-    let inventory = JSON.parse(localStorage.getItem('tio_inv')) || defaultInventory;
-    let cart = [
-      { code: '000062', desc: 'CHUPETA BIG BON XXX WHITE URBAN', qty: 1, price: 15516 },
-      { code: '000220', desc: 'WAFER CHOCOLATE 24UNID', qty: 1, price: 6012 },
-      { code: '000094', desc: 'MENTA HELADA SUPER 100*3.8gr', qty: 1, price: 6948 },
-      { code: '000035', desc: 'BIANCHI SNACK CHOCOLORES MANI 50gr', qty: 3, price: 1980 },
-      { code: '000185', desc: 'TRULULU AROS 70gr', qty: 2, price: 1980 }
-    ];
+    let inventory = JSON.parse(localStorage.getItem('tj_inv_v2')) || defaultInv;
+    let cart = [];
 
-    // INICIO DE SESIÓN CON DATOS EXACTOS SOLICITADOS
-    function autenticarUsuario(e) {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('fInputEmision').value = today;
+    document.getElementById('fInputVenc').value = today;
+
+    function login(e) {
       e.preventDefault();
       const u = document.getElementById('userInput').value;
       const p = document.getElementById('passInput').value;
 
-      if (u === 'admin' && p === '15597680') {
+      if(u === 'admin' && p === '15597680') {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-container').style.display = 'flex';
-        renderInventario();
-        renderCarrito();
+        renderAll();
       } else {
-        alert("Usuario o contraseña incorrectos. Intente nuevamente.");
+        alert("Credenciales incorrectas");
       }
     }
 
-    function switchTab(tab) {
+    function showTab(tab) {
       document.getElementById('sec-dash').style.display = tab === 'dash' ? 'block' : 'none';
       document.getElementById('sec-inv').style.display = tab === 'inv' ? 'block' : 'none';
       document.getElementById('sec-pos').style.display = tab === 'pos' ? 'block' : 'none';
@@ -350,105 +379,165 @@
       document.getElementById('m-pos').className = tab === 'pos' ? 'active' : '';
     }
 
-    function guardarProducto() {
-      const code = document.getElementById('addCode').value;
-      const desc = document.getElementById('addDesc').value;
-      const price = parseFloat(document.getElementById('addPrice').value);
+    function saveProduct() {
+      const code = document.getElementById('pCode').value;
+      const desc = document.getElementById('pDesc').value;
+      const p1 = parseFloat(document.getElementById('pPrice1').value);
+      const p2 = parseFloat(document.getElementById('pPrice2').value) || p1;
+      const hasIva = document.getElementById('pHasIva').checked;
 
-      if(!code || !desc || isNaN(price)) return alert("Por favor complete todos los datos del producto.");
+      if(!code || !desc || isNaN(p1)) return alert("Por favor complete código, descripción y al menos el Precio 1.");
 
-      inventory.push({ code, desc, price });
-      localStorage.setItem('tio_inv', JSON.stringify(inventory));
+      inventory.push({ code, desc, p1, p2, hasIva });
+      localStorage.setItem('tj_inv_v2', JSON.stringify(inventory));
       
-      document.getElementById('addCode').value = '';
-      document.getElementById('addDesc').value = '';
-      document.getElementById('addPrice').value = '';
+      document.getElementById('pCode').value = '';
+      document.getElementById('pDesc').value = '';
+      document.getElementById('pPrice1').value = '';
+      document.getElementById('pPrice2').value = '';
 
-      renderInventario();
-      alert("Producto guardado correctamente.");
+      renderAll();
     }
 
-    function renderInventario() {
-      document.getElementById('dash-prod-count').innerText = inventory.length;
-      const body = document.getElementById('invTableBody');
-      const select = document.getElementById('prodSelector');
-      
-      body.innerHTML = '';
-      select.innerHTML = '';
+    function deleteProduct(idx) {
+      if(confirm("¿Eliminar este producto del inventario?")) {
+        inventory.splice(idx, 1);
+        localStorage.setItem('tj_inv_v2', JSON.stringify(inventory));
+        renderAll();
+      }
+    }
 
-      inventory.forEach((item, index) => {
-        body.innerHTML += `
-          <tr>
-            <td><strong>${item.code}</strong></td>
-            <td>${item.desc}</td>
-            <td>$${item.price.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-            <td><button onclick="eliminarProducto(${index})" style="background:none; border:none; color:var(--danger); cursor:pointer;">Eliminar</button></td>
-          </tr>
-        `;
-        select.innerHTML += `<option value="${index}">${item.code} — ${item.desc} ($${item.price})</option>`;
+    function addToCart() {
+      const idx = document.getElementById('pSelect').value;
+      const pType = document.getElementById('priceType').value;
+      const qty = parseFloat(document.getElementById('pQty').value);
+
+      if(isNaN(qty) || qty <= 0) return alert("Cantidad no válida");
+
+      const item = inventory[idx];
+      const selectedPrice = pType === '1' ? item.p1 : item.p2;
+
+      cart.push({ code: item.code, desc: item.desc, qty, price: selectedPrice, hasIva: item.hasIva });
+      renderCart();
+    }
+
+    function updateFactura() {
+      document.getElementById('fNum').innerText = document.getElementById('fInputNum').value;
+      document.getElementById('fEmision').innerText = document.getElementById('fInputEmision').value;
+      document.getElementById('fVenc').innerText = document.getElementById('fInputVenc').value;
+      
+      document.getElementById('fName').innerText = document.getElementById('fInputName').value;
+      document.getElementById('fDir').innerText = document.getElementById('fInputDir').value;
+      document.getElementById('fRif').innerText = document.getElementById('fInputRif').value;
+      document.getElementById('fPhone').innerText = document.getElementById('fInputPhone').value;
+    }
+
+    function renderInventoryTable() {
+      const invTbody = document.getElementById('invTable');
+      const filter = document.getElementById('searchInv')?.value.toLowerCase() || '';
+      const rateUsd = parseFloat(document.getElementById('rateUsd').value) || 4000;
+      const rateBs = parseFloat(document.getElementById('rateBs').value) || 100;
+
+      invTbody.innerHTML = '';
+
+      inventory.forEach((item, idx) => {
+        if(item.desc.toLowerCase().includes(filter) || item.code.toLowerCase().includes(filter)) {
+          const p1Usd = (item.p1 / rateUsd).toFixed(2);
+          const p1Bs = (item.p1 / rateBs).toFixed(2);
+          const p2Usd = (item.p2 / rateUsd).toFixed(2);
+          const p2Bs = (item.p2 / rateBs).toFixed(2);
+
+          invTbody.innerHTML += `
+            <tr>
+              <td><strong>${item.code}</strong></td>
+              <td>${item.desc}</td>
+              <td>
+                <span class="badge ${item.hasIva ? 'badge-iva' : 'badge-exempt'}">
+                  ${item.hasIva ? 'IVA 16%' : 'Exento'}
+                </span>
+              </td>
+              <td>
+                <div><strong>$${item.p1.toLocaleString()} COP</strong></div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">$${p1Usd} USD / ${p1Bs} Bs.</div>
+              </td>
+              <td>
+                <div><strong>$${item.p2.toLocaleString()} COP</strong></div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">$${p2Usd} USD / ${p2Bs} Bs.</div>
+              </td>
+              <td><button onclick="deleteProduct(${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:700;">Eliminar</button></td>
+            </tr>
+          `;
+        }
       });
     }
 
-    function eliminarProducto(index) {
-      inventory.splice(index, 1);
-      localStorage.setItem('tio_inv', JSON.stringify(inventory));
-      renderInventario();
-    }
-
-    function agregarAlCarrito() {
-      const idx = document.getElementById('prodSelector').value;
-      const qty = parseInt(document.getElementById('prodQty').value);
-      if (isNaN(qty) || qty <= 0) return alert("Ingrese una cantidad válida.");
-
-      const prod = inventory[idx];
-      cart.push({ ...prod, qty });
-      renderCarrito();
-    }
-
-    function renderCarrito() {
-      const body = document.getElementById('cartTableBody');
-      body.innerHTML = '';
-
-      let totalGeneral = 0;
+    function renderCart() {
+      const tbody = document.getElementById('cartTable');
+      tbody.innerHTML = '';
+      
+      let baseExempt = 0;
+      let baseImponibleTotal = 0;
 
       cart.forEach(item => {
         const itemTotal = item.qty * item.price;
-        totalGeneral += itemTotal;
+        
+        if (item.hasIva) {
+          baseImponibleTotal += itemTotal;
+        } else {
+          baseExempt += itemTotal;
+        }
 
-        body.innerHTML += `
+        tbody.innerHTML += `
           <tr>
             <td>${item.code}</td>
             <td>${item.desc}</td>
-            <td style="text-align: right;">${item.qty.toFixed(2)}</td>
-            <td style="text-align: right;">${item.price.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-            <td style="text-align: right;">${itemTotal.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td style="text-align:center;">${item.hasIva ? 'G' : 'E'}</td>
+            <td style="text-align:right;">${item.qty.toFixed(2)}</td>
+            <td style="text-align:right;">${item.price.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            <td style="text-align:right;">${itemTotal.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
           </tr>
         `;
       });
 
-      const subtotal = totalGeneral / 1.16;
-      const iva = totalGeneral - subtotal;
+      const baseImponible = baseImponibleTotal / 1.16;
+      const iva = baseImponibleTotal - baseImponible;
+      const grandTotal = baseExempt + baseImponibleTotal;
 
-      document.getElementById('lblSub').innerText = subtotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+      const rateUsd = parseFloat(document.getElementById('rateUsd').value) || 4000;
+      const rateBs = parseFloat(document.getElementById('rateBs').value) || 100;
+
+      document.getElementById('lblExempt').innerText = baseExempt.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('lblSub').innerText = baseImponible.toLocaleString('en-US', {minimumFractionDigits: 2});
       document.getElementById('lblIva').innerText = iva.toLocaleString('en-US', {minimumFractionDigits: 2});
-      document.getElementById('lblTotal').innerText = totalGeneral.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('lblTotalCop').innerText = grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+      
+      document.getElementById('lblTotalUsd').innerText = (grandTotal / rateUsd).toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('lblTotalBs').innerText = (grandTotal / rateBs).toLocaleString('en-US', {minimumFractionDigits: 2});
 
-      // ACTUALIZAR CÓDIGO QR CON ENLACE DE CONSULTA
+      // GENERAR CÓDIGO QR
       document.getElementById("qrcode").innerHTML = "";
       new QRCode(document.getElementById("qrcode"), {
-        text: "https://comercializadoratiojulian.com/factura?num=0000752&monto=" + totalGeneral,
-        width: 62, height: 62, colorDark : "#000000", colorLight : "#ffffff"
+        text: `https://comercializadoratiojulian.com/verificar?num=${document.getElementById('fInputNum').value}&monto=${grandTotal}`,
+        width: 60, height: 60
       });
+
+      updateFactura();
     }
 
-    function procesarEImprimir() {
-      // Sincronizar datos del cliente
-      document.getElementById('lblCliName').innerText = document.getElementById('cliName').value;
-      document.getElementById('lblCliDir').innerText = document.getElementById('cliDir').value;
-      document.getElementById('lblCliRif').innerText = document.getElementById('cliRif').value;
-      document.getElementById('lblCliPhone').innerText = document.getElementById('cliPhone').value;
+    function renderAll() {
+      document.getElementById('dash-count').innerText = inventory.length;
+      const totalInvVal = inventory.reduce((acc, i) => acc + i.p1, 0);
+      document.getElementById('dash-val').innerText = '$' + totalInvVal.toLocaleString('en-US', {minimumFractionDigits:2});
 
-      window.print();
+      // SELECTOR FACTURA
+      const pSelect = document.getElementById('pSelect');
+      pSelect.innerHTML = '';
+      inventory.forEach((item, idx) => {
+        pSelect.innerHTML += `<option value="${idx}">${item.code} — ${item.desc} (${item.hasIva ? 'IVA' : 'EXENTO'})</option>`;
+      });
+
+      renderInventoryTable();
+      renderCart();
     }
   </script>
 </body>
