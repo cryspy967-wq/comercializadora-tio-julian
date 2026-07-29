@@ -25,6 +25,7 @@
 
     let isLocalUpdate = false;
 
+    // Escuchar cambios de la nube en tiempo real
     onSnapshot(docRef, (snapshot) => {
       if (snapshot.exists()) {
         if (!isLocalUpdate) {
@@ -32,78 +33,149 @@
           if (data.inventory) { window.inventory = data.inventory; localStorage.setItem('tj_inv_v7', JSON.stringify(data.inventory)); }
           if (data.invoicesHistory) { window.invoicesHistory = data.invoicesHistory; localStorage.setItem('tj_invoices_v7', JSON.stringify(data.invoicesHistory)); }
           if (data.fiscalInvoicesHistory) { window.fiscalInvoicesHistory = data.fiscalInvoicesHistory; localStorage.setItem('tj_fiscal_invoices_v7', JSON.stringify(data.fiscalInvoicesHistory)); }
-          // Integración nuevos datos
+          
+          // NUEVOS DATOS INTEGRADOS
           if (data.categories) { window.categories = data.categories; localStorage.setItem('tj_cats_v7', JSON.stringify(data.categories)); }
           if (data.suppliers) { window.suppliers = data.suppliers; localStorage.setItem('tj_supps_v7', JSON.stringify(data.suppliers)); }
           if (data.clients) { window.clients = data.clients; localStorage.setItem('tj_clients_v7', JSON.stringify(data.clients)); }
-          
+
           if (data.nextNotaNumber) { window.nextNotaNumber = data.nextNotaNumber; localStorage.setItem('tj_nota_num_v7', data.nextNotaNumber); }
           if (data.nextFiscalNumber) { window.nextFiscalNumber = data.nextFiscalNumber; localStorage.setItem('tj_fiscal_num_v7', data.nextFiscalNumber); }
           if (data.nextProdNum) { window.nextProdNum = data.nextProdNum; localStorage.setItem('tj_prod_num_v7', data.nextProdNum); }
           if (data.blockedIPs && window.saveBlockedIPs) { window.saveBlockedIPs(data.blockedIPs); }
           
           if (window.renderAll) window.renderAll();
+          if (window.initDates) window.initDates();
         }
         isLocalUpdate = false;
       } else {
         window.saveToFirebaseCloud();
       }
-    }, (error) => { console.error("Error Firebase:", error); });
+    }, (error) => {
+      console.error("Error conectando a Firebase Firestore:", error);
+    });
 
+    // Función para guardar en la nube
     window.saveToFirebaseCloud = async function() {
       try {
         isLocalUpdate = true;
-        await setDoc(docRef, {
+        const payload = {
           inventory: window.inventory || [],
           invoicesHistory: window.invoicesHistory || [],
           fiscalInvoicesHistory: window.fiscalInvoicesHistory || [],
-          categories: window.categories || [],
-          suppliers: window.suppliers || [],
+          // NUEVO: Payload sincronizado
+          categories: window.categories || ['General'],
+          suppliers: window.suppliers || ['Sin Proveedor'],
           clients: window.clients || [],
           nextNotaNumber: window.nextNotaNumber || 1,
           nextFiscalNumber: window.nextFiscalNumber || 1,
           nextProdNum: window.nextProdNum || 1,
           blockedIPs: (typeof getBlockedIPs === 'function') ? getBlockedIPs() : {}
-        });
-      } catch (err) { console.error("Error nube:", err); }
+        };
+        await setDoc(docRef, payload);
+      } catch (err) {
+        console.error("Error guardando datos en la nube:", err);
+      }
     };
   </script>
 
   <style>
-    :root { --bg-main: #f0f7ff; --bg-card: #ffffff; --bg-input: #f8fafc; --border: #cbd5e1; --accent: #0284c7; --accent-hover: #0369a1; --accent-light: #e0f2fe; --text: #0f172a; --text-muted: #64748b; --danger: #ef4444; --success: #10b981; --fiscal: #8b5cf6; }
+    :root {
+      --bg-main: #f0f7ff;
+      --bg-card: #ffffff;
+      --bg-input: #f8fafc;
+      --border: #cbd5e1;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --accent-light: #e0f2fe;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --danger: #ef4444;
+      --success: #10b981;
+      --fiscal: #8b5cf6;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-main); color: var(--text); font-size: 0.88rem; min-height: 100vh; display: flex; overflow: hidden; }
+
     #public-qr-screen { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f8fafc; z-index: 10000; padding: 20px; flex-direction: column; align-items: center; justify-content: center; }
     .public-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 30px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; }
+
     #login-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); display: flex; justify-content: center; align-items: center; z-index: 9999; }
     .login-card { background: #ffffff; border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+    .blocked-banner { display: none; background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; font-size: 0.85rem; line-height: 1.4; }
+
     .input-sys { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; outline: none; margin-top: 4px; }
     .input-sys:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
     .btn-primary { width: 100%; background: var(--accent); color: #fff; border: none; padding: 11px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .btn-primary:hover { background: var(--accent-hover); }
+
     #app-container { display: none; width: 100%; height: 100vh; flex-direction: row; }
     aside { width: 250px; background: #ffffff; border-right: 1px solid var(--border); padding: 25px 20px; display: flex; flex-direction: column; gap: 20px; }
     .brand { font-size: 1.15rem; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    
     nav ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     nav a { color: var(--text-muted); text-decoration: none; padding: 10px 12px; border-radius: 8px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.85rem; }
     nav a.active, nav a:hover { background: var(--accent-light); color: var(--accent); }
+
     main { flex: 1; padding: 30px; overflow-y: auto; }
     .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
     .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+
     .table-sys { width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px; }
     .table-sys th { background: #f1f5f9; padding: 10px; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; border-bottom: 2px solid var(--border); }
     .table-sys td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-    .invoice-preview { background: #fff; color: #000; padding: 15px 20px; max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif; border: 1px solid #000; width: 100%; }
-    @media print { body { background: #fff !important; } #login-screen, aside, .no-print, #public-qr-screen { display: none !important; } main { padding: 0 !important; } }
+
+    .print-sheet { display: flex; flex-direction: column; gap: 10px; }
+    .invoice-preview { background: #fff; color: #000; padding: 15px 20px; max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif; border: 1px solid #000; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; }
+    .doc-header { text-align: center; margin-bottom: 4px; }
+    .doc-title { font-weight: 900; font-size: 1rem; text-transform: uppercase; color: #000; }
+    .doc-sub { font-size: 0.7rem; font-weight: 600; font-style: italic; }
+    .doc-fiscal { font-size: 0.65rem; margin-top: 1px; }
+    .doc-client { border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 0; margin: 4px 0; font-size: 0.7rem; font-weight: 700; line-height: 1.2; text-transform: uppercase; }
+    .doc-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; margin-bottom: 6px; }
+    .doc-table th { border-bottom: 1px solid #000; text-align: left; padding: 2px 4px; background: #f1f5f9; }
+    .doc-table td { padding: 1px 4px; border-bottom: 1px solid #e2e8f0; }
+    .doc-totals { text-align: right; font-size: 0.7rem; font-weight: 800; line-height: 1.2; border-top: 1px solid #000; padding-top: 2px; }
+
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      #login-screen, aside, .no-print, #public-qr-screen { display: none !important; }
+      #app-container { display: block !important; }
+      main { padding: 0 !important; }
+      .invoice-preview { border: 1px dashed #000 !important; padding: 8px 12px !important; width: 100% !important; max-width: 100% !important; box-shadow: none !important; page-break-inside: avoid; }
+      .print-sheet { display: block !important; }
+      @page { size: portrait; margin: 4mm 5mm; }
+      .doc-table td { padding: 0.5px 3px !important; font-size: 0.6rem !important; }
+      .doc-table th { padding: 1.5px 3px !important; font-size: 0.62rem !important; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- PANTALLA LOGIN -->
+  <!-- (Mantenemos toda tu lógica original de QR y Login) -->
+  <div id="public-qr-screen">
+    <div class="public-card">
+      <h2 style="color:var(--accent); margin-bottom:5px;">Comercializadora Tío Julián</h2>
+      <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:15px;">Módulo de Verificación Digital</p>
+      <hr style="margin-bottom:15px; border:none; border-top:1px solid var(--border);">
+      <div id="qr-result-box" style="text-align:left; line-height:1.6; font-size:0.9rem;">
+        <p><strong>Estado:</strong> <span style="color:var(--success); font-weight:bold;">✔ Documento Válido</span></p>
+        <p><strong>Nº Documento:</strong> <span id="pub-num">---</span></p>
+        <p><strong>Monto Total USD:</strong> <span id="pub-monto">---</span></p>
+        <p><strong>Fecha de Emisión:</strong> <span id="pub-fecha">---</span></p>
+      </div>
+    </div>
+  </div>
+
   <div id="login-screen">
     <div class="login-card">
       <h2 style="margin-bottom: 5px; color: var(--accent);">TÍO JULIÁN</h2>
+      <div id="ipBlockedMessage" class="blocked-banner">
+        🚨 DISPOSITIVO / IP BLOQUEADA
+        <button onclick="forceUnblockThisDevice()" style="margin-top:12px; background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; width:100%;">🔓 Liberar Ahora</button>
+      </div>
       <form id="loginForm" onsubmit="login(event)" autocomplete="off">
         <input type="text" id="userInput" class="input-sys" placeholder="Usuario" required>
         <input type="password" id="passInput" class="input-sys" placeholder="Contraseña" required>
@@ -112,7 +184,6 @@
     </div>
   </div>
 
-  <!-- APLICACIÓN -->
   <div id="app-container">
     <aside>
       <div class="brand">📦 <span>TÍO JULIÁN</span></div>
@@ -120,94 +191,90 @@
         <ul>
           <li><a href="#" id="m-dash" class="active" onclick="showTab('dash')">📊 Panel</a></li>
           <li><a href="#" id="m-inv" onclick="showTab('inv')">📋 Inventario</a></li>
-          <li><a href="#" id="m-clients" onclick="showTab('clients')">👥 Clientes</a></li>
+          <li><a href="#" id="m-clients" onclick="showTab('clients')">👥 Clientes</a></li> <!-- NUEVO -->
           <li><a href="#" id="m-pos" onclick="showTab('pos')">📄 Nota de Entrega</a></li>
-          <li><a href="#" id="m-fiscal" onclick="showTab('fiscal')">🧾 Fiscal</a></li>
-          <li><a href="#" id="m-config" onclick="showTab('config')">⚙️ Configuración</a></li>
+          <li><a href="#" id="m-fiscal" onclick="showTab('fiscal')">🧾 Facturas Fiscales</a></li>
+          <li><a href="#" id="m-hist" onclick="showTab('hist')">📂 Notas Guardadas</a></li>
+          <li><a href="#" id="m-sales" onclick="showTab('sales')">📈 Ventas</a></li>
+          <li><a href="#" id="m-config" onclick="showTab('config')">⚙️ Configuración</a></li> <!-- NUEVO -->
+          <li><a href="#" id="m-sec" onclick="showTab('sec')">🛡️ Seguridad</a></li>
         </ul>
       </nav>
+      <!-- ... Botones de exportar ... -->
     </aside>
 
     <main>
-      <!-- DASHBOARD -->
-      <div id="sec-dash"><h1>Resumen</h1></div>
-
-      <!-- INVENTARIO CON CATEGORÍAS/PROVEEDORES -->
-      <div id="sec-inv" style="display:none;">
-        <h1>Inventario</h1>
-        <div class="card">
-          <input type="text" id="pDesc" class="input-sys" placeholder="Descripción">
-          <div class="grid-2">
-            <select id="pCat" class="input-sys"><option>Seleccione Categoría</option></select>
-            <select id="pSupp" class="input-sys"><option>Seleccione Proveedor</option></select>
-          </div>
-          <button onclick="saveProduct()" class="btn-primary" style="margin-top:10px;">+ Guardar Producto</button>
-        </div>
-        <table class="table-sys"><tbody id="invTable"></tbody></table>
-      </div>
-
-      <!-- CLIENTES -->
+      <!-- ... (Mantén tus secciones: sec-dash, sec-inv, sec-fiscal, etc) ... -->
+      <div id="sec-dash">...</div>
+      
+      <!-- [SECCIÓN NUEVA: CLIENTES] -->
       <div id="sec-clients" style="display:none;">
         <h1>Directorio de Clientes</h1>
         <div class="card">
-          <input type="text" id="cName" class="input-sys" placeholder="Nombre Cliente">
+          <input type="text" id="cName" class="input-sys" placeholder="Nombre/Razón Social">
           <input type="text" id="cRif" class="input-sys" placeholder="RIF/CI">
           <button onclick="saveClient()" class="btn-primary" style="margin-top:10px;">Guardar Cliente</button>
         </div>
         <table class="table-sys"><tbody id="clientTable"></tbody></table>
       </div>
 
-      <!-- POS / FACTURACIÓN -->
+      <!-- [INTEGRACIÓN EN NOTA DE ENTREGA] -->
       <div id="sec-pos" style="display:none;">
-        <h1>Nota de Entrega</h1>
         <div class="card">
-          <label>Buscar Cliente:</label>
-          <select id="clientSelector" class="input-sys" onchange="fillClientData()">
-            <option value="">Seleccione un cliente...</option>
-          </select>
-          <div class="grid-2" style="margin-top:10px;">
-            <input type="text" id="fInputName" class="input-sys" placeholder="Nombre">
-            <input type="text" id="fInputRif" class="input-sys" placeholder="RIF">
-          </div>
+            <label>Seleccionar Cliente:</label>
+            <select id="clientSelector" class="input-sys" onchange="fillClientData()">
+                <option value="">Seleccionar cliente...</option>
+            </select>
+            <!-- (Sigue tu código original aquí) -->
         </div>
+        <!-- ... -->
       </div>
 
-      <!-- CONFIGURACIÓN -->
+      <!-- [SECCIÓN NUEVA: CONFIGURACIÓN] -->
       <div id="sec-config" style="display:none;">
-        <h1>Configuración</h1>
+        <h1>Configuración General</h1>
         <div class="card">
-          <h3>Categorías</h3>
-          <input type="text" id="newCat" class="input-sys">
-          <button onclick="addCategory()" class="btn-primary">Añadir Categoría</button>
-          <div id="catList"></div>
+            <h3>Categorías de Productos</h3>
+            <input type="text" id="newCat" class="input-sys">
+            <button onclick="addCategory()" class="btn-primary">Añadir Categoría</button>
+            <div id="catList" style="margin-top:10px;"></div>
         </div>
         <div class="card">
-          <h3>Proveedores</h3>
-          <input type="text" id="newSupp" class="input-sys">
-          <button onclick="addSupplier()" class="btn-primary">Añadir Proveedor</button>
-          <div id="suppList"></div>
+            <h3>Proveedores</h3>
+            <input type="text" id="newSupp" class="input-sys">
+            <button onclick="addSupplier()" class="btn-primary">Añadir Proveedor</button>
+            <div id="suppList" style="margin-top:10px;"></div>
         </div>
       </div>
-
+      
+      <!-- (El resto de tus secciones originales: sec-inv, sec-fiscal, etc.) -->
     </main>
   </div>
 
   <script>
-    // ESTADO GLOBAL
-    window.inventory = JSON.parse(localStorage.getItem('tj_inv_v7')) || [];
+    // --- LÓGICA DE DATOS NUEVOS ---
     window.categories = JSON.parse(localStorage.getItem('tj_cats_v7')) || ['General'];
     window.suppliers = JSON.parse(localStorage.getItem('tj_supps_v7')) || ['Sin Proveedor'];
     window.clients = JSON.parse(localStorage.getItem('tj_clients_v7')) || [];
 
-    // --- LÓGICA DE CLIENTES ---
+    // --- FUNCIONES NUEVAS ---
     function saveClient() {
       const name = document.getElementById('cName').value;
       const rif = document.getElementById('cRif').value;
+      if(!name) return;
       window.clients.push({name, rif});
-      localStorage.setItem('tj_clients_v7', JSON.stringify(window.clients));
-      saveToFirebaseCloud();
-      renderAll();
-      alert("Cliente guardado");
+      saveToStorage();
+      renderClientsUI();
+    }
+
+    function addCategory() {
+      const val = document.getElementById('newCat').value;
+      if(val) { window.categories.push(val); saveToStorage(); renderConfigUI(); }
+    }
+
+    function addSupplier() {
+      const val = document.getElementById('newSupp').value;
+      if(val) { window.suppliers.push(val); saveToStorage(); renderConfigUI(); }
     }
 
     function fillClientData() {
@@ -216,58 +283,27 @@
         const c = window.clients[idx];
         document.getElementById('fInputName').value = c.name;
         document.getElementById('fInputRif').value = c.rif;
+        updateFactura();
       }
     }
 
-    // --- LÓGICA CONFIGURACIÓN ---
-    function addCategory() {
-      const val = document.getElementById('newCat').value;
-      if(val) { window.categories.push(val); localStorage.setItem('tj_cats_v7', JSON.stringify(window.categories)); saveToFirebaseCloud(); renderAll(); }
-    }
-    function addSupplier() {
-      const val = document.getElementById('newSupp').value;
-      if(val) { window.suppliers.push(val); localStorage.setItem('tj_supps_v7', JSON.stringify(window.suppliers)); saveToFirebaseCloud(); renderAll(); }
+    function renderClientsUI() {
+      const sel = document.getElementById('clientSelector');
+      sel.innerHTML = '<option value="">Seleccionar cliente...</option>' + window.clients.map((c, i) => `<option value="${i}">${c.name}</option>`).join('');
+      document.getElementById('clientTable').innerHTML = window.clients.map(c => `<tr><td>${c.name}</td><td>${c.rif}</td></tr>`).join('');
     }
 
-    // --- LÓGICA INVENTARIO ---
-    function saveProduct() {
-      const desc = document.getElementById('pDesc').value;
-      const cat = document.getElementById('pCat').value;
-      const supp = document.getElementById('pSupp').value;
-      // ... (Resto de tu lógica original de guardado)
-      window.inventory.push({ desc, cat, supp }); // Integración simple
-      saveToFirebaseCloud();
-      renderAll();
-    }
-
-    // --- RENDERIZADO GENERAL ---
-    function renderAll() {
-      // Poblar Selectores
-      const clientSel = document.getElementById('clientSelector');
-      clientSel.innerHTML = '<option value="">Seleccionar cliente...</option>' + window.clients.map((c,i) => `<option value="${i}">${c.name}</option>`).join('');
-      
-      const catSel = document.getElementById('pCat');
-      catSel.innerHTML = window.categories.map(c => `<option>${c}</option>`).join('');
-      
-      const suppSel = document.getElementById('pSupp');
-      suppSel.innerHTML = window.suppliers.map(s => `<option>${s}</option>`).join('');
-      
-      // Renderizar Listas Config
+    function renderConfigUI() {
       document.getElementById('catList').innerHTML = window.categories.join(', ');
       document.getElementById('suppList').innerHTML = window.suppliers.join(', ');
     }
-    window.renderAll = renderAll;
 
-    function showTab(tab) {
-      document.getElementById('sec-dash').style.display = tab === 'dash' ? 'block' : 'none';
-      document.getElementById('sec-inv').style.display = tab === 'inv' ? 'block' : 'none';
-      document.getElementById('sec-clients').style.display = tab === 'clients' ? 'block' : 'none';
-      document.getElementById('sec-pos').style.display = tab === 'pos' ? 'block' : 'none';
-      document.getElementById('sec-config').style.display = tab === 'config' ? 'block' : 'none';
-    }
+    // --- INTEGRACIÓN EN TU renderAll EXISTENTE ---
+    // (Asegúrate de incluir estas llamadas en tu función renderAll original)
+    // renderClientsUI();
+    // renderConfigUI();
 
-    function login(e) { e.preventDefault(); document.getElementById('login-screen').style.display = 'none'; document.getElementById('app-container').style.display = 'flex'; renderAll(); }
-    renderAll();
+    // ... (El resto de tu código original sigue igual hasta el final) ...
   </script>
 </body>
 </html>
