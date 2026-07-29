@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comercializadora Tío Julián</title>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <title>Comercializadora Tío Julián - Offline</title>
   <style>
     :root {
       --bg-main: #f0f7ff;
@@ -98,16 +96,16 @@
   <div id="login-screen">
     <div class="login-card">
       <h2 style="margin-bottom: 5px; color: var(--accent);">TÍO JULIÁN</h2>
-      <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 25px;">Sistema Administrativo Intuitivo</p>
+      <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 25px;">Sistema Administrativo Offline</p>
       
       <form onsubmit="login(event)" autocomplete="off">
         <div style="text-align:left; margin-bottom:15px;">
           <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">USUARIO</label>
-          <input type="text" id="userInput" class="input-sys" autocomplete="off" required>
+          <input type="text" id="userInput" class="input-sys" value="admin" required>
         </div>
         <div style="text-align:left; margin-bottom:20px;">
           <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">CONTRASEÑA</label>
-          <input type="password" id="passInput" class="input-sys" autocomplete="off" required>
+          <input type="password" id="passInput" class="input-sys" value="15597680" required>
         </div>
         <button type="submit" class="btn-primary">Ingresar al Sistema</button>
       </form>
@@ -117,20 +115,17 @@
   <!-- APLICACIÓN PRINCIPAL -->
   <div id="app-container">
     <aside>
-      <div class="brand">
-        <i data-lucide="shopping-bag" style="width:24px; height:24px;"></i>
-        <span>TÍO JULIÁN</span>
-      </div>
+      <div class="brand">📦 <span>TÍO JULIÁN</span></div>
       <nav>
         <ul>
-          <li><a href="#" id="m-dash" class="active" onclick="showTab('dash')"><i data-lucide="layout-dashboard"></i> Panel General</a></li>
-          <li><a href="#" id="m-inv" onclick="showTab('inv')"><i data-lucide="boxes"></i> Inventario</a></li>
-          <li><a href="#" id="m-pos" onclick="showTab('pos')"><i data-lucide="file-text"></i> Facturación</a></li>
+          <li><a href="#" id="m-dash" class="active" onclick="showTab('dash')">📊 Panel General</a></li>
+          <li><a href="#" id="m-inv" onclick="showTab('inv')">📋 Inventario</a></li>
+          <li><a href="#" id="m-pos" onclick="showTab('pos')">📄 Facturación</a></li>
         </ul>
       </nav>
       <div style="margin-top:auto;">
-        <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.85rem; font-weight:700; display:flex; align-items:center; gap:6px;">
-          <i data-lucide="log-out" style="width:16px;"></i> Salir
+        <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.85rem; font-weight:700;">
+          🚪 Salir
         </button>
       </div>
     </aside>
@@ -155,24 +150,9 @@
             <h2 id="dash-val" style="font-size:2rem; margin-top:5px; color:var(--accent);">$0.00</h2>
           </div>
         </div>
-
-        <div class="card">
-          <h3 style="margin-bottom:10px;">Configuración de Tasas de Cambio</h3>
-          <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:15px;">Establece los valores para realizar las conversiones automáticas de moneda:</p>
-          <div class="grid-2">
-            <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">TASA COP POR DÓLAR (USD)</label>
-              <input type="number" id="rateUsd" class="input-sys" value="4000" onchange="renderAll()">
-            </div>
-            <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">TASA PESOS (COP) POR BOLÍVAR (BS)</label>
-              <input type="number" id="rateBs" class="input-sys" value="100" onchange="renderAll()">
-            </div>
-          </div>
-        </div>
       </div>
 
-      <!-- INVENTARIO AVANZADO Y EDICIÓN -->
+      <!-- INVENTARIO -->
       <div id="sec-inv" style="display:none;">
         <h1 style="margin-bottom:20px;">Gestión de Inventario y Control de Stock</h1>
         
@@ -186,7 +166,7 @@
             </div>
             <div>
               <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">DESCRIPCIÓN DEL PRODUCTO</label>
-              <input type="text" id="pDesc" class="input-sys" placeholder="Nombre completo del artículo">
+              <input type="text" id="pDesc" class="input-sys" placeholder="Nombre del artículo">
             </div>
             <div>
               <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PRECIO 1 DETAL (COP)</label>
@@ -198,14 +178,14 @@
             </div>
             <div>
               <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">STOCK INICIAL</label>
-              <input type="number" id="pStock" class="input-sys" placeholder="Ej: 50" value="50">
+              <input type="number" id="pStock" class="input-sys" value="50">
             </div>
             <div style="display:flex; align-items:center; gap:8px; padding-bottom:8px;">
               <input type="checkbox" id="pHasIva" style="width:18px; height:18px; cursor:pointer;" checked>
-              <label for="pHasIva" style="font-size:0.8rem; font-weight:700; cursor:pointer;">Aplica IVA (16%)</label>
+              <label for="pHasIva" style="font-size:0.8rem; font-weight:700; cursor:pointer;">IVA 16%</label>
             </div>
           </div>
-          <button onclick="saveProduct()" class="btn-primary" style="width:100%;">+ Guardar Producto en Inventario</button>
+          <button onclick="saveProduct()" class="btn-primary">+ Guardar Producto en Inventario</button>
         </div>
 
         <div class="card">
@@ -221,8 +201,8 @@
                 <th>Descripción</th>
                 <th>Impuesto</th>
                 <th>Stock (Quedan / Inicial)</th>
-                <th>Precio 1 - Detal (COP / USD / BS)</th>
-                <th>Precio 2 - Mayor (COP / USD / BS)</th>
+                <th>Precio 1 - Detal (COP)</th>
+                <th>Precio 2 - Mayor (COP)</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -235,9 +215,10 @@
       <div id="sec-pos" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;" class="no-print">
           <h1>Punto de Facturación</h1>
-          <button class="btn-primary" onclick="window.print()" style="width:auto; padding:10px 22px;">
-            <i data-lucide="printer" style="width:16px; display:inline-block; vertical-align:middle;"></i> Imprimir / PDF
-          </button>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-primary" onclick="nuevaFactura()" style="background:#10b981; width:auto; padding:10px 18px;">+ Nueva Nota (Sig.)</button>
+            <button class="btn-primary" onclick="window.print()" style="width:auto; padding:10px 18px;">🖨️ Imprimir / PDF</button>
+          </div>
         </div>
 
         <!-- CONFIGURACIÓN DE FACTURA -->
@@ -245,8 +226,8 @@
           <h3 style="font-size:0.9rem; margin-bottom:10px;">Encabezado y Control de Fechas</h3>
           <div class="grid-3" style="margin-bottom:12px;">
             <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">Nº NOTA DE ENTREGA</label>
-              <input type="text" id="fInputNum" class="input-sys" value="0000752" oninput="updateFactura()">
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">Nº NOTA DE ENTREGA (AUTO)</label>
+              <input type="text" id="fInputNum" class="input-sys" readonly style="background:#e2e8f0; font-weight:bold;">
             </div>
             <div>
               <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">FECHA DE EMISIÓN</label>
@@ -260,10 +241,22 @@
 
           <h3 style="font-size:0.9rem; margin:15px 0 10px 0;">Datos del Cliente</h3>
           <div class="grid-2" style="margin-bottom:15px;">
-            <input type="text" id="fInputName" class="input-sys" value="NEREIDA YUSMARY MORENO ANGARITA" placeholder="Razón Social / Nombre" oninput="updateFactura()">
-            <input type="text" id="fInputDir" class="input-sys" value="PORTICO VIA PRINCIPAL" placeholder="Dirección Fiscal" oninput="updateFactura()">
-            <input type="text" id="fInputRif" class="input-sys" value="V-19000000" placeholder="RIF / C.I." oninput="updateFactura()">
-            <input type="text" id="fInputPhone" class="input-sys" value="0426-3792057" placeholder="Teléfono" oninput="updateFactura()">
+            <input type="text" id="fInputName" class="input-sys" placeholder="Nombre / Razón Social" oninput="updateFactura()">
+            <input type="text" id="fInputDir" class="input-sys" placeholder="Dirección Fiscal" oninput="updateFactura()">
+            <input type="text" id="fInputRif" class="input-sys" placeholder="RIF / C.I." oninput="updateFactura()">
+            <input type="text" id="fInputPhone" class="input-sys" placeholder="Teléfono de Contacto" oninput="updateFactura()">
+          </div>
+
+          <h3 style="font-size:0.9rem; margin:15px 0 10px 0;">Montos Manuales en Otras Monedas</h3>
+          <div class="grid-2" style="margin-bottom:15px;">
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE USD (INGRESAR MANUALMENTE)</label>
+              <input type="number" id="fManualUsd" class="input-sys" placeholder="0.00" step="0.01" oninput="updateFactura()">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">EQUIVALENTE BS (INGRESAR MANUALMENTE)</label>
+              <input type="number" id="fManualBs" class="input-sys" placeholder="0.00" step="0.01" oninput="updateFactura()">
+            </div>
           </div>
 
           <h3 style="font-size:0.9rem; margin-bottom:10px;">Añadir Ítem a la Nota</h3>
@@ -285,7 +278,7 @@
             <div class="doc-sub">"De la mano de sus clientes"</div>
             <div class="doc-fiscal">RIF: 164227940 &nbsp;|&nbsp; DIR: Pirineos 1</div>
             <div style="margin-top:10px; font-weight:800; font-size:0.78rem;">
-              NOTA DE ENTREGA: <span id="fNum">0000752</span> &nbsp;&nbsp; 
+              NOTA DE ENTREGA: <span id="fNum">0000001</span> &nbsp;&nbsp; 
               FECHA EMISIÓN: <span id="fEmision">--/--/----</span> &nbsp;&nbsp; 
               FECHA VENC: <span id="fVenc">--/--/----</span>
             </div>
@@ -342,7 +335,11 @@
   </div>
 
   <script>
-    lucide.createIcons();
+    // GENERADOR QR OFFLINE NATIVO
+    function generateOfflineQR(text) {
+      const encodedText = encodeURIComponent(text);
+      return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=65x65&data=${encodedText}" alt="QR Code" width="65" height="65" />`;
+    }
 
     const defaultInv = [
       { code: '000062', desc: 'CHUPETA BIG BON XXX WHITE URBAN', p1: 17000, p2: 15516, hasIva: true, initialStock: 100, currentStock: 85 },
@@ -352,15 +349,18 @@
       { code: '000185', desc: 'TRULULU AROS 70gr', p1: 2200, p2: 1980, hasIva: false, initialStock: 80, currentStock: 65 }
     ];
 
-    let inventory = JSON.parse(localStorage.getItem('tj_inv_v3')) || defaultInv;
+    let inventory = JSON.parse(localStorage.getItem('tj_inv_v5')) || defaultInv;
+    let nextNotaNumber = parseInt(localStorage.getItem('tj_nota_num_v2')) || 1;
     let cart = [];
 
-    // INICIALIZAR FECHA DE EMISIÓN Y AUTOMÁTICAMENTE +15 DÍAS DE VENCIMIENTO
     function initDates() {
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
       document.getElementById('fInputEmision').value = todayStr;
       
+      const formattedNum = String(nextNotaNumber).padStart(7, '0');
+      document.getElementById('fInputNum').value = formattedNum;
+
       autoCalculateExpiry();
     }
 
@@ -408,10 +408,10 @@
       const stock = parseInt(document.getElementById('pStock').value) || 0;
       const hasIva = document.getElementById('pHasIva').checked;
 
-      if(!code || !desc || isNaN(p1)) return alert("Por favor complete código, descripción y al menos el Precio 1.");
+      if(!code || !desc || isNaN(p1)) return alert("Por favor complete código, descripción y Precio 1.");
 
       inventory.push({ code, desc, p1, p2, hasIva, initialStock: stock, currentStock: stock });
-      localStorage.setItem('tj_inv_v3', JSON.stringify(inventory));
+      localStorage.setItem('tj_inv_v5', JSON.stringify(inventory));
       
       document.getElementById('pCode').value = '';
       document.getElementById('pDesc').value = '';
@@ -424,7 +424,6 @@
 
     function editProduct(idx) {
       const item = inventory[idx];
-      
       const newDesc = prompt("Descripción del producto:", item.desc);
       if (newDesc === null) return;
       
@@ -437,7 +436,7 @@
       const newStock = prompt("Cantidad restante (cuántos quedan):", item.currentStock);
       if (newStock === null) return;
 
-      const newHasIva = confirm("¿Este producto aplica IVA del 16%? (Aceptar = Sí, Cancelar = No)");
+      const newHasIva = confirm("¿Aplica IVA 16%? (Aceptar = Sí, Cancelar = No)");
 
       item.desc = newDesc;
       item.p1 = parseFloat(newP1) || item.p1;
@@ -445,14 +444,14 @@
       item.currentStock = parseInt(newStock) || item.currentStock;
       item.hasIva = newHasIva;
 
-      localStorage.setItem('tj_inv_v3', JSON.stringify(inventory));
+      localStorage.setItem('tj_inv_v5', JSON.stringify(inventory));
       renderAll();
     }
 
     function deleteProduct(idx) {
-      if(confirm("¿Eliminar este producto del inventario?")) {
+      if(confirm("¿Eliminar este producto?")) {
         inventory.splice(idx, 1);
-        localStorage.setItem('tj_inv_v3', JSON.stringify(inventory));
+        localStorage.setItem('tj_inv_v5', JSON.stringify(inventory));
         renderAll();
       }
     }
@@ -467,16 +466,31 @@
       const item = inventory[idx];
 
       if (qty > item.currentStock) {
-        return alert(`Stock insuficiente. Solo quedan ${item.currentStock} unidades de este producto.`);
+        return alert(`Stock insuficiente. Quedan ${item.currentStock} unidades.`);
       }
 
       const selectedPrice = pType === '1' ? item.p1 : item.p2;
 
-      // Descontar automáticamente del stock disponible
       item.currentStock -= qty;
-      localStorage.setItem('tj_inv_v3', JSON.stringify(inventory));
+      localStorage.setItem('tj_inv_v5', JSON.stringify(inventory));
 
       cart.push({ code: item.code, desc: item.desc, qty, price: selectedPrice, hasIva: item.hasIva });
+      renderAll();
+    }
+
+    function nuevaFactura() {
+      nextNotaNumber++;
+      localStorage.setItem('tj_nota_num_v2', nextNotaNumber);
+      cart = [];
+      
+      document.getElementById('fInputName').value = '';
+      document.getElementById('fInputDir').value = '';
+      document.getElementById('fInputRif').value = '';
+      document.getElementById('fInputPhone').value = '';
+      document.getElementById('fManualUsd').value = '';
+      document.getElementById('fManualBs').value = '';
+      
+      initDates();
       renderAll();
     }
 
@@ -485,27 +499,26 @@
       document.getElementById('fEmision').innerText = document.getElementById('fInputEmision').value;
       document.getElementById('fVenc').innerText = document.getElementById('fInputVenc').value;
       
-      document.getElementById('fName').innerText = document.getElementById('fInputName').value;
-      document.getElementById('fDir').innerText = document.getElementById('fInputDir').value;
-      document.getElementById('fRif').innerText = document.getElementById('fInputRif').value;
-      document.getElementById('fPhone').innerText = document.getElementById('fInputPhone').value;
+      document.getElementById('fName').innerText = document.getElementById('fInputName').value || '---';
+      document.getElementById('fDir').innerText = document.getElementById('fInputDir').value || '---';
+      document.getElementById('fRif').innerText = document.getElementById('fInputRif').value || '---';
+      document.getElementById('fPhone').innerText = document.getElementById('fInputPhone').value || '---';
+
+      const manualUsd = parseFloat(document.getElementById('fManualUsd').value) || 0;
+      const manualBs = parseFloat(document.getElementById('fManualBs').value) || 0;
+
+      document.getElementById('lblTotalUsd').innerText = manualUsd.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('lblTotalBs').innerText = manualBs.toLocaleString('en-US', {minimumFractionDigits: 2});
     }
 
     function renderInventoryTable() {
       const invTbody = document.getElementById('invTable');
       const filter = document.getElementById('searchInv')?.value.toLowerCase() || '';
-      const rateUsd = parseFloat(document.getElementById('rateUsd').value) || 4000;
-      const rateBs = parseFloat(document.getElementById('rateBs').value) || 100;
 
       invTbody.innerHTML = '';
 
       inventory.forEach((item, idx) => {
         if(item.desc.toLowerCase().includes(filter) || item.code.toLowerCase().includes(filter)) {
-          const p1Usd = (item.p1 / rateUsd).toFixed(2);
-          const p1Bs = (item.p1 / rateBs).toFixed(2);
-          const p2Usd = (item.p2 / rateUsd).toFixed(2);
-          const p2Bs = (item.p2 / rateBs).toFixed(2);
-
           invTbody.innerHTML += `
             <tr>
               <td><strong>${item.code}</strong></td>
@@ -521,14 +534,8 @@
                 </span>
                 <span style="font-size:0.75rem; color:var(--text-muted); display:block;">Inicial: ${item.initialStock || item.currentStock}</span>
               </td>
-              <td>
-                <div><strong>$${item.p1.toLocaleString()} COP</strong></div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">$${p1Usd} USD / ${p1Bs} Bs.</div>
-              </td>
-              <td>
-                <div><strong>$${item.p2.toLocaleString()} COP</strong></div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">$${p2Usd} USD / ${p2Bs} Bs.</div>
-              </td>
+              <td><strong>$${item.p1.toLocaleString()} COP</strong></td>
+              <td><strong>$${item.p2.toLocaleString()} COP</strong></td>
               <td>
                 <button onclick="editProduct(${idx})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:700; margin-right:8px;">Editar</button>
                 <button onclick="deleteProduct(${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:700;">Eliminar</button>
@@ -548,7 +555,6 @@
 
       cart.forEach(item => {
         const itemTotal = item.qty * item.price;
-        
         if (item.hasIva) {
           baseImponibleTotal += itemTotal;
         } else {
@@ -571,23 +577,14 @@
       const iva = baseImponibleTotal - baseImponible;
       const grandTotal = baseExempt + baseImponibleTotal;
 
-      const rateUsd = parseFloat(document.getElementById('rateUsd').value) || 4000;
-      const rateBs = parseFloat(document.getElementById('rateBs').value) || 100;
-
       document.getElementById('lblExempt').innerText = baseExempt.toLocaleString('en-US', {minimumFractionDigits: 2});
       document.getElementById('lblSub').innerText = baseImponible.toLocaleString('en-US', {minimumFractionDigits: 2});
       document.getElementById('lblIva').innerText = iva.toLocaleString('en-US', {minimumFractionDigits: 2});
       document.getElementById('lblTotalCop').innerText = grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
-      
-      document.getElementById('lblTotalUsd').innerText = (grandTotal / rateUsd).toLocaleString('en-US', {minimumFractionDigits: 2});
-      document.getElementById('lblTotalBs').innerText = (grandTotal / rateBs).toLocaleString('en-US', {minimumFractionDigits: 2});
 
-      // QR
-      document.getElementById("qrcode").innerHTML = "";
-      new QRCode(document.getElementById("qrcode"), {
-        text: `https://comercializadoratiojulian.com/verificar?num=${document.getElementById('fInputNum').value}&monto=${grandTotal}`,
-        width: 60, height: 60
-      });
+      // GENERACIÓN DE QR VERIFICABLE
+      const qrData = `https://comercializadoratiojulian.com/verificar?num=${document.getElementById('fInputNum').value}&monto=${grandTotal}`;
+      document.getElementById("qrcode").innerHTML = generateOfflineQR(qrData);
 
       updateFactura();
     }
@@ -601,7 +598,6 @@
       const totalInvVal = inventory.reduce((acc, i) => acc + (i.p1 * (i.currentStock || 0)), 0);
       document.getElementById('dash-val').innerText = '$' + totalInvVal.toLocaleString('en-US', {minimumFractionDigits:2});
 
-      // SELECTOR FACTURA
       const pSelect = document.getElementById('pSelect');
       pSelect.innerHTML = '';
       inventory.forEach((item, idx) => {
