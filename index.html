@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Facturación y Control de IPs</title>
+    <title>Comercializadora Tío Julián - Sistema Integrado</title>
     <style>
-        /* CONFIGURACIÓN IMPRESIÓN VERTICAL */
+        /* CONFIGURACIÓN DE IMPRESIÓN VERTICAL */
         @page {
-            size: A4 portrait; /* Fuerza la orientación vertical */
-            margin: 15mm;
+            size: A4 portrait; /* Orientación vertical para la factura */
+            margin: 12mm;
         }
 
         * {
@@ -17,7 +17,7 @@
         }
 
         body {
-            background-color: #f0f2f5;
+            background-color: #f4f6f9;
             margin: 0;
             padding: 20px;
             color: #333;
@@ -28,7 +28,7 @@
             margin: 0 auto;
         }
 
-        /* NAVEGACIÓN Y PESTAÑAS */
+        /* MENÚ DE PESTAÑAS (NAVEGACIÓN) */
         .nav-tabs {
             display: flex;
             gap: 10px;
@@ -38,8 +38,8 @@
         .tab-btn {
             padding: 12px 24px;
             border: none;
-            background-color: #e4e6eb;
-            color: #050505;
+            background-color: #d1d5db;
+            color: #1f2937;
             font-weight: bold;
             font-size: 15px;
             border-radius: 6px;
@@ -48,7 +48,7 @@
         }
 
         .tab-btn.active {
-            background-color: #1b74e4;
+            background-color: #0d6efd;
             color: white;
         }
 
@@ -57,14 +57,16 @@
             background: white;
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
         .tab-content.active {
             display: block;
         }
 
-        /* FACTURA VERTICAL */
+        /* ----------------------------------- */
+        /* FACTURA VERTICAL - TÍO JULIÁN       */
+        /* ----------------------------------- */
         .factura-box {
             max-width: 800px;
             margin: 0 auto;
@@ -74,18 +76,20 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 2px solid #2c3e50;
+            border-bottom: 3px solid #0d6efd;
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
 
         .empresa-info h2 {
             margin: 0 0 5px 0;
-            color: #2c3e50;
+            color: #0d6efd;
+            font-size: 24px;
+            text-transform: uppercase;
         }
 
         .empresa-info p, .factura-detalles p {
-            margin: 2px 0;
+            margin: 3px 0;
             font-size: 0.9em;
             color: #555;
         }
@@ -96,13 +100,13 @@
 
         .factura-detalles h1 {
             margin: 0 0 5px 0;
-            color: #2c3e50;
+            color: #1f2937;
             font-size: 26px;
         }
 
         .cliente-box {
             background-color: #f8f9fa;
-            border-left: 4px solid #2c3e50;
+            border-left: 4px solid #0d6efd;
             padding: 15px;
             margin-bottom: 25px;
             font-size: 0.95em;
@@ -117,14 +121,14 @@
 
         table.tabla-factura th, table.tabla-factura td {
             border: 1px solid #dee2e6;
-            padding: 12px;
+            padding: 10px 12px;
             text-align: left;
             font-size: 0.95em;
         }
 
         table.tabla-factura th {
-            background-color: #f1f3f5;
-            color: #2c3e50;
+            background-color: #0d6efd;
+            color: white;
         }
 
         .text-right { text-align: right; }
@@ -153,8 +157,9 @@
         .total-destacado {
             font-size: 1.15em;
             font-weight: bold;
-            border-top: 2px solid #2c3e50 !important;
+            border-top: 2px solid #0d6efd !important;
             background-color: #f8f9fa;
+            color: #0d6efd;
         }
 
         .footer-factura {
@@ -166,7 +171,9 @@
             padding-top: 15px;
         }
 
-        /* PANEL CONTROL DE IPS */
+        /* ----------------------------------- */
+        /* PANEL CONTROL DE IPS                */
+        /* ----------------------------------- */
         .status-card {
             background-color: #e7f5ff;
             border: 1px solid #a5d8ff;
@@ -198,8 +205,8 @@
             cursor: pointer;
         }
 
-        .btn-danger { background-color: #e03131; color: white; }
-        .btn-success { background-color: #2b8a3e; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-success { background-color: #198754; color: white; }
 
         table.tabla-ips {
             width: 100%;
@@ -217,15 +224,15 @@
         }
 
         .badge-blocked {
-            background-color: #ffe3e3;
-            color: #c92a2a;
+            background-color: #f8d7da;
+            color: #842029;
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 0.85em;
             font-weight: bold;
         }
 
-        /* OCULTAR NAVEGACIÓN AL IMPRIMIR FACTURA */
+        /* REGLA DE IMPRESIÓN PARA OCULTAR NAVEGACIÓN Y PANEL */
         @media print {
             .nav-tabs, #panel-ip {
                 display: none !important;
@@ -244,40 +251,40 @@
 <body>
 
     <div class="container">
-        <!-- Pestañas de Navegación -->
+        <!-- Navegación entre Factura y Panel de IPs -->
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="verPestana('factura')">Factura Vertical</button>
-            <button class="tab-btn" onclick="verPestana('panel-ip')">Control de Bloqueo de IPs</button>
+            <button class="tab-btn" onclick="verPestana('panel-ip')">Gestión de IPs Bloqueadas</button>
         </div>
 
-        <!-- PESTAÑA FACTURA -->
+        <!-- PESTAÑA 1: FACTURA DE COMERCIALIZADORA TÍO JULIÁN -->
         <div id="factura" class="tab-content active">
             <div class="factura-box">
                 <div class="header-factura">
                     <div class="empresa-info">
-                        <h2>Mi Empresa S.A.</h2>
-                        <p>NIT / RUC: 123456789</p>
-                        <p>Dirección: Calle Principal #123</p>
-                        <p>Teléfono: +58 412 0000000</p>
+                        <h2>Comercializadora Tío Julián</h2>
+                        <p><strong>RIF / NIT:</strong> J-12345678-9</p>
+                        <p><strong>Dirección:</strong> Av. Principal, Local 4, Sector Centro</p>
+                        <p><strong>Teléfono:</strong> +58 412-0000000</p>
                     </div>
                     <div class="factura-detalles">
                         <h1>FACTURA</h1>
-                        <p><strong>N°:</strong> 000125</p>
+                        <p><strong>N° Control:</strong> 000458</p>
                         <p><strong>Fecha:</strong> 29/07/2026</p>
                     </div>
                 </div>
 
                 <div class="cliente-box">
-                    <strong>Facturar a:</strong><br>
-                    Cliente Ejemplo S.A.<br>
-                    <strong>ID / RIF:</strong> J-987654321<br>
-                    <strong>Dirección:</strong> Av. Bolivar, Edificio Centro
+                    <strong>DATOS DEL CLIENTE:</strong><br>
+                    <strong>Nombre / Razón Social:</strong> Inversiones López C.A.<br>
+                    <strong>RIF / C.I.:</strong> J-98765432-1<br>
+                    <strong>Dirección:</strong> Calle Comercio, Edificio Don Pedro, Piso 1
                 </div>
 
                 <table class="tabla-factura">
                     <thead>
                         <tr>
-                            <th style="width: 50%;">Descripción</th>
+                            <th style="width: 50%;">Descripción del Producto / Servicio</th>
                             <th class="text-center" style="width: 15%;">Cant.</th>
                             <th class="text-right" style="width: 18%;">Precio Unit.</th>
                             <th class="text-right" style="width: 17%;">Total</th>
@@ -285,16 +292,16 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Desarrollo de Sistema Web</td>
-                            <td class="text-center">1</td>
-                            <td class="text-right">$100.00</td>
-                            <td class="text-right">$100.00</td>
+                            <td>Caja de Aceite Vegetal 12x1L</td>
+                            <td class="text-center">5</td>
+                            <td class="text-right">$24.00</td>
+                            <td class="text-right">$120.00</td>
                         </tr>
                         <tr>
-                            <td>Mantenimiento y Soporte</td>
-                            <td class="text-center">1</td>
-                            <td class="text-right">$30.00</td>
-                            <td class="text-right">$30.00</td>
+                            <td>Saco de Harina de Trigo 45kg</td>
+                            <td class="text-center">2</td>
+                            <td class="text-right">$35.00</td>
+                            <td class="text-right">$70.00</td>
                         </tr>
                     </tbody>
                 </table>
@@ -304,56 +311,57 @@
                         <table>
                             <tr>
                                 <td class="text-right">Subtotal:</td>
-                                <td class="text-right">$130.00</td>
+                                <td class="text-right">$190.00</td>
                             </tr>
                             <tr>
                                 <td class="text-right">IVA (16%):</td>
-                                <td class="text-right">$20.80</td>
+                                <td class="text-right">$30.40</td>
                             </tr>
                             <tr class="total-destacado">
                                 <td class="text-right">Total a Pagar:</td>
-                                <td class="text-right">$150.80</td>
+                                <td class="text-right">$220.40</td>
                             </tr>
                         </table>
                     </div>
                 </div>
 
                 <div class="footer-factura">
-                    <p>¡Gracias por su preferencia!</p>
+                    <p>¡Comercializadora Tío Julián agradece su compra!</p>
                 </div>
             </div>
         </div>
 
-        <!-- PESTAÑA PANEL DE IPS -->
+        <!-- PESTAÑA 2: PANEL DE CONTROL DE IPS -->
         <div id="panel-ip" class="tab-content">
-            <h2>Gestión de IPs Bloqueadas</h2>
+            <h2>Panel de Control de IPs - Tío Julián</h2>
             
             <div class="status-card">
-                <strong>Control de Red:</strong> Las IPs añadidas a esta lista tendrán la conexión interrumpida al intentar acceder al sitio.
+                <strong>Administración de Seguridad:</strong> Desde este panel puedes registrar la IP que deseas bloquear. Las direcciones en esta lista no podrán cargar el sistema y verán una falla total de red.
             </div>
 
             <div class="ip-controls">
-                <input type="text" id="input-ip" placeholder="Escribe la IP a bloquear (Ej: 192.168.1.50)">
+                <input type="text" id="input-ip" placeholder="Ingresa la IP a bloquear (Ej: 192.168.1.88)">
                 <button class="btn btn-danger" onclick="bloquearIP()">Bloquear IP</button>
             </div>
 
-            <h3>IPs Bloqueadas Actualmente</h3>
+            <h3>Lista de IPs Bloqueadas</h3>
             <table class="tabla-ips">
                 <thead>
                     <tr>
                         <th>Dirección IP</th>
-                        <th>Estado</th>
+                        <th>Estado de Red</th>
                         <th class="text-center">Acción</th>
                     </tr>
                 </thead>
                 <tbody id="lista-ips-body">
-                    <!-- Se genera dinámicamente -->
+                    <!-- Dinámico con JS -->
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
+        // Cambiar entre la factura y el control de IPs
         function verPestana(idPestana) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -362,7 +370,8 @@
             document.getElementById(idPestana).classList.add('active');
         }
 
-        let listaIps = JSON.parse(localStorage.getItem('ips_bloqueadas')) || ['192.168.1.50'];
+        // Cargar lista de IPs desde el navegador
+        let listaIps = JSON.parse(localStorage.getItem('ips_bloqueadas_tiojulian')) || ['190.200.45.12'];
 
         function renderizarIps() {
             const tbody = document.getElementById('lista-ips-body');
@@ -391,30 +400,31 @@
             const ip = input.value.trim();
 
             if (!ip) {
-                alert('Ingresa una IP válida.');
+                alert('Por favor, ingresa una dirección IP.');
                 return;
             }
 
             if (listaIps.includes(ip)) {
-                alert('Esta IP ya está bloqueada.');
+                alert('Esta IP ya se encuentra bloqueada.');
                 return;
             }
 
             listaIps.push(ip);
-            localStorage.setItem('ips_bloqueadas', JSON.stringify(listaIps));
+            localStorage.setItem('ips_bloqueadas_tiojulian', JSON.stringify(listaIps));
             input.value = '';
             renderizarIps();
-            alert(`IP ${ip} bloqueada.`);
+            alert(`IP ${ip} bloqueada con éxito.`);
         }
 
         function desbloquearIP(index) {
             const ipEliminada = listaIps[index];
             listaIps.splice(index, 1);
-            localStorage.setItem('ips_bloqueadas', JSON.stringify(listaIps));
+            localStorage.setItem('ips_bloqueadas_tiojulian', JSON.stringify(listaIps));
             renderizarIps();
-            alert(`IP ${ipEliminada} desbloqueada.`);
+            alert(`La IP ${ipEliminada} ha sido desbloqueada.`);
         }
 
+        // Renderizado inicial
         renderizarIps();
     </script>
 </body>
